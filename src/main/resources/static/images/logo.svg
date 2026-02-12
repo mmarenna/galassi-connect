@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80">
+  <!-- Icono Abstracto -->
+  <path d="M40 20 L60 60 L20 60 Z" fill="#0f4c81" opacity="0.9"/>
+  <path d="M55 20 L75 60 L35 60 Z" fill="#00a8cc" opacity="0.7" transform="translate(15, 0)"/>
+
+  <!-- Texto -->
+  <text x="100" y="55" font-family="Arial, sans-serif" font-size="34" font-weight="bold" fill="#333">
+    Galassi<tspan fill="#0f4c81">Connect</tspan>
+  </text>
+</svg>

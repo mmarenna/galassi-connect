@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>User Dashboard</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <h1 class="mb-4">Panel de Usuario</h1>
+
+        <!-- Simulación de Login -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Identifícate</h5>
+                <div class="row align-items-end">
+                    <div class="col-md-6">
+                        <label for="userSelect" class="form-label">Selecciona tu Usuario:</label>
+                        <select class="form-select" id="userSelect">
+                            <option value="" selected disabled>Seleccione...</option>
+                            <th:block th:each="usuario : ${usuarios}">
+                                <!-- Muestra: Juan Perez (Ref: 12345) -->
+                                <option th:value="${usuario.id}" th:text="${usuario.name} + ' (Ref: ' + ${usuario.reference_id} + ')'"></option>
+                            </th:block>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" onclick="loadUserData()">Ingresar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Archivos (Oculta inicialmente) -->
+        <div id="filesSection" class="d-none">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <i class="bi bi-folder2-open"></i> Archivos Disponibles
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Empresa: <span id="empresaName" class="fw-bold">Cargando...</span></h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nombre del Archivo</th>
+                                    <th>Descripción</th>
+                                    <th>Tipo</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="filesTableBody">
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="noFilesAlert" class="alert alert-info d-none">
+                        No hay archivos disponibles para tu empresa en este momento.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function loadUserData() {
+                const userId = document.getElementById('userSelect').value;
+                if (!userId) {
+                    alert('Por favor selecciona un usuario.');
+                    return;
+                }
+
+                // 1. Obtener datos de la empresa
+                fetch(`/api/user/${userId}/empresa`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Usuario sin empresa asignada');
+                        return response.json();
+                    })
+                    .then(empresa => {
+                        document.getElementById('empresaName').textContent = empresa.name;
+                        document.getElementById('filesSection').classList.remove('d-none');
+                        loadFiles(userId);
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert('No se pudo cargar la información de la empresa. Verifica que el usuario tenga una asignada.');
+                        document.getElementById('filesSection').classList.add('d-none');
+                    });
+            }
+
+            function loadFiles(userId) {
+                const tableBody = document.getElementById('filesTableBody');
+                const noFilesAlert = document.getElementById('noFilesAlert');
+
+                tableBody.innerHTML = ''; // Limpiar tabla
+
+                fetch(`/api/user/${userId}/files`)
+                    .then(response => response.json())
+                    .then(files => {
+                        if (files.length === 0) {
+                            noFilesAlert.classList.remove('d-none');
+                            return;
+                        }
+
+                        noFilesAlert.classList.add('d-none');
+
+                        files.forEach(file => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td><i class="bi bi-file-earmark-text me-2"></i>${file.name}</td>
+                                <td>${file.description || '-'}</td>
+                                <td><span class="badge bg-secondary">${file.type}</span></td>
+                                <td>
+                                    <a href="/api/user/files/${file.id}/download" class="btn btn-sm btn-outline-primary" target="_blank">
+                                        <i class="bi bi-download"></i> Descargar
+                                    </a>
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    })
+                    .catch(error => console.error('Error cargando archivos:', error));
+            }
+        </script>
+    </div>
+</body>
+</html>

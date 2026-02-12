@@ -1,0 +1,127 @@
+/* Galassi Connect - Corporate Theme */
+
+:root {
+    --primary-color: #0f4c81; /* Classic Blue */
+    --secondary-color: #6c757d;
+    --accent-color: #00a8cc;
+    --bg-color: #f4f6f9;
+    --text-color: #333333;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    --header-height: 70px;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Navbar --- */
+.navbar {
+    background-color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    height: var(--header-height);
+    padding: 0;
+}
+
+.navbar-brand img {
+    height: 45px;
+    width: auto;
+}
+
+.nav-link {
+    color: var(--primary-color) !important;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    transition: color 0.2s;
+}
+
+.nav-link:hover {
+    color: var(--accent-color) !important;
+}
+
+/* --- Cards --- */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+    background-color: #fff;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+    font-weight: 700;
+    color: var(--primary-color);
+    padding: 1rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* --- Buttons --- */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #0a365e;
+    border-color: #0a365e;
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+/* --- Footer --- */
+.footer {
+    background-color: #fff !important;
+    border-top: 1px solid #eee;
+    margin-top: auto;
+    padding: 1.5rem 0;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+/* --- Drop Zone (Admin) --- */
+.drop-zone {
+    border: 2px dashed #cbd5e0;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    transition: border-color 0.2s;
+}
+
+.drop-zone:hover, .drop-zone--over {
+    border-color: var(--primary-color);
+    background-color: #edf2f7;
+}
+
+/* --- Tables --- */
+.table thead th {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8fafc;
+}

@@ -1,0 +1,296 @@
+{
+	"info": {
+		"_postman_id": "galassi-connect-collection",
+		"name": "Galassi Connect API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Crear Empresa",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"referenceId\": \"EMP-001\",\n    \"files\": [],\n    \"vendedores\": []\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/admin/empresas",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"empresas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Agregar Vendedor a Empresa",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"referenceId\": \"VEND-001\",\n    \"name\": \"Juan Perez\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/admin/empresas/1/vendedores",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"empresas",
+								"1",
+								"vendedores"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Subir Archivo a Empresa",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"factura_enero.pdf\",\n    \"description\": \"Factura de servicios Enero\",\n    \"type\": \"FACTURA\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/admin/empresas/1/files",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"empresas",
+								"1",
+								"files"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear Usuario",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"referenceId\": \"USR-001\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/admin/usuarios",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"usuarios"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Vincular Usuario a Empresa",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/usuarios/1/empresas/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"usuarios",
+								"1",
+								"empresas",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Vincular Usuario a Vendedor",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/admin/usuarios/1/vendedores/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"admin",
+								"usuarios",
+								"1",
+								"vendedores",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Obtener Empresas de Usuario",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/user/1/empresas",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"user",
+								"1",
+								"empresas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Archivos (Filtrado por Empresa)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/user/1/files?empresaId=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"user",
+								"1",
+								"files"
+							],
+							"query": [
+								{
+									"key": "empresaId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Archivos (Filtrado por Empresa y Tipo)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/user/1/files?empresaId=1&type=FACTURA",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"user",
+								"1",
+								"files"
+							],
+							"query": [
+								{
+									"key": "empresaId",
+									"value": "1"
+								},
+								{
+									"key": "type",
+									"value": "FACTURA"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Descargar Archivo",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/user/files/1/download",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"user",
+								"files",
+								"1",
+								"download"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
