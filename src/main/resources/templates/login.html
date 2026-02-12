@@ -8,21 +8,27 @@
 <body>
     <div layout:fragment="content">
         <div class="row justify-content-center mt-5">
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <div class="card shadow">
                     <div class="card-header bg-primary text-white text-center">
                         <h4><i class="bi bi-person-circle"></i> Iniciar Sesión</h4>
                     </div>
                     <div class="card-body p-4">
-                        <!-- Mensaje de error simulado -->
                         <div th:if="${param.error}" class="alert alert-danger text-center">
                             Credenciales incorrectas.
                         </div>
 
                         <form action="/auth/login" method="post">
                             <div class="mb-3">
-                                <label for="username" class="form-label">Usuario</label>
-                                <input type="text" class="form-control" id="username" name="username" placeholder="admin o user" required autofocus>
+                                <label for="userId" class="form-label">Seleccione Usuario</label>
+                                <select class="form-select" id="userId" name="userId" required autofocus>
+                                    <option value="" selected disabled>Seleccione...</option>
+                                    <option value="admin" class="fw-bold text-primary">-- ADMINISTRADOR --</option>
+                                    <option disabled>--------------------------</option>
+                                    <th:block th:each="usuario : ${usuarios}">
+                                        <option th:value="${usuario.id}" th:text="${usuario.name} + ' (Ref: ' + ${usuario.reference_id} + ')'"></option>
+                                    </th:block>
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Contraseña</label>
@@ -32,9 +38,6 @@
                                 <button type="submit" class="btn btn-primary">Ingresar</button>
                             </div>
                         </form>
-                    </div>
-                    <div class="card-footer text-center text-muted">
-                        <small>Prueba con usuario: <b>admin</b> o <b>user</b></small>
                     </div>
                 </div>
             </div>
