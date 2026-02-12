@@ -68,7 +68,7 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
     
-    // Descargas (Sigue devolviendo Resource, no DTO)
+    // Descargas
     @GetMapping("/files/{fileId}/download")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) {
         Optional<File> fileOpt = fileService.findById(fileId);
@@ -88,11 +88,18 @@ public class UserController {
 
     // --- Mappers Manuales ---
 
-    private EmpresaDTO mapToEmpresaDTO(Empresa empresa) {
+    private EmpresaDTO mapToEmpresaDTO(Empresa entity) {
         EmpresaDTO dto = new EmpresaDTO();
-        dto.setId(empresa.getId());
-        dto.setName(empresa.getName());
-        dto.setReference_id(empresa.getReference_id());
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setReference_id(entity.getReference_id());
+        dto.setDireccion(entity.getDireccion());
+        dto.setLocalidad(entity.getLocalidad());
+        dto.setTelefono(entity.getTelefono());
+        dto.setCuit(entity.getCuit());
+        dto.setCp(entity.getCp());
+        dto.setProvincia(entity.getProvincia());
+        dto.setEmail(entity.getEmail());
         return dto;
     }
 

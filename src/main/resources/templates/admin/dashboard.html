@@ -58,7 +58,7 @@
     <div layout:fragment="content">
         <h1 class="mb-4">Panel de Administración</h1>
 
-        <div class="row">
+        <div class="row mb-5">
             <!-- Tarjeta de Carga de Archivos -->
             <div class="col-md-4 mb-4">
                 <div class="card h-100 border-primary">
@@ -85,7 +85,7 @@
                             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createEmpresaModal">
                                 <i class="bi bi-plus-circle"></i> Crear Empresa
                             </button>
-                            <button class="btn btn-outline-secondary" onclick="openListEmpresasModal()">
+                            <button class="btn btn-outline-secondary" onclick="showSection('empresas')">
                                 <i class="bi bi-list-ul"></i> Ver Listado
                             </button>
                         </div>
@@ -103,7 +103,7 @@
                             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createUsuarioModal">
                                 <i class="bi bi-person-plus"></i> Crear Usuario
                             </button>
-                            <button class="btn btn-outline-secondary" onclick="openListUsuariosModal()">
+                            <button class="btn btn-outline-secondary" onclick="showSection('usuarios')">
                                 <i class="bi bi-people"></i> Ver Listado
                             </button>
                         </div>
@@ -112,9 +112,64 @@
             </div>
         </div>
 
+        <!-- SECCIÓN DE TABLAS (PAGINADAS) -->
+        <div id="dataSection" class="card shadow-sm d-none">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0" id="sectionTitle">Listado</h5>
+                <button class="btn btn-sm btn-close" onclick="hideSection()"></button>
+            </div>
+            <div class="card-body">
+                <!-- Tabla Empresas -->
+                <div id="empresasTableContainer" class="d-none">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Ref ID</th>
+                                    <th>CUIT</th>
+                                    <th>Email</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="empresasTableBody"></tbody>
+                        </table>
+                    </div>
+                    <!-- Paginación Empresas -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center" id="empresasPagination"></ul>
+                    </nav>
+                </div>
+
+                <!-- Tabla Usuarios -->
+                <div id="usuariosTableContainer" class="d-none">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Ref ID</th>
+                                    <th>Email</th>
+                                    <th>Empresa ID</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usuariosTableBody"></tbody>
+                        </table>
+                    </div>
+                    <!-- Paginación Usuarios -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center" id="usuariosPagination"></ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
         <!-- ================= MODALES ================= -->
 
-        <!-- Modal Carga de Archivos (Ya existente) -->
+        <!-- Modal Carga de Archivos -->
         <div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -179,38 +234,21 @@
                                 <input type="text" class="form-control" id="empresaName" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Reference ID</label>
+                                <label class="form-label">Reference ID (IDPROVGALASI)</label>
                                 <input type="text" class="form-control" id="empresaRefId" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">CUIT</label>
+                                <input type="text" class="form-control" id="empresaCuit">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="empresaEmail">
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary" onclick="createEmpresa()">Guardar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal Listar Empresas -->
-        <div class="modal fade" id="listEmpresasModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Listado de Empresas</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Ref ID</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="empresasTableBody"></tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -231,8 +269,12 @@
                                 <input type="text" class="form-control" id="usuarioName" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Reference ID</label>
+                                <label class="form-label">Reference ID (IdCliente)</label>
                                 <input type="text" class="form-control" id="usuarioRefId" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="usuarioEmail">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Empresa</label>
@@ -252,109 +294,121 @@
             </div>
         </div>
 
-        <!-- Modal Listar Usuarios -->
-        <div class="modal fade" id="listUsuariosModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Listado de Usuarios</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Ref ID</th>
-                                    <th>Empresa ID</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usuariosTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <script>
-            // --- Lógica de Drag & Drop (Existente) ---
-            document.querySelectorAll(".drop-zone__input").forEach((inputElement) => {
-                const dropZoneElement = inputElement.closest(".drop-zone");
-                dropZoneElement.addEventListener("click", (e) => inputElement.click());
-                inputElement.addEventListener("change", (e) => {
-                    if (inputElement.files.length) updateThumbnail(dropZoneElement, inputElement.files[0]);
-                });
-                dropZoneElement.addEventListener("dragover", (e) => {
-                    e.preventDefault();
-                    dropZoneElement.classList.add("drop-zone--over");
-                });
-                ["dragleave", "dragend"].forEach((type) => {
-                    dropZoneElement.addEventListener(type, (e) => dropZoneElement.classList.remove("drop-zone--over"));
-                });
-                dropZoneElement.addEventListener("drop", (e) => {
-                    e.preventDefault();
-                    if (e.dataTransfer.files.length) {
-                        inputElement.files = e.dataTransfer.files;
-                        updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
-                    }
-                    dropZoneElement.classList.remove("drop-zone--over");
-                });
-            });
+            // --- Variables Globales ---
+            let currentEmpresasPage = 0;
+            let currentUsuariosPage = 0;
+            const pageSize = 10;
 
-            function updateThumbnail(dropZoneElement, file) {
-                let thumbnailElement = dropZoneElement.querySelector(".drop-zone__thumb");
-                if (dropZoneElement.querySelector(".drop-zone__prompt")) dropZoneElement.querySelector(".drop-zone__prompt").remove();
-                if (!thumbnailElement) {
-                    thumbnailElement = document.createElement("div");
-                    thumbnailElement.classList.add("drop-zone__thumb");
-                    dropZoneElement.appendChild(thumbnailElement);
+            // --- Lógica de UI ---
+            function showSection(type) {
+                document.getElementById('dataSection').classList.remove('d-none');
+                document.getElementById('empresasTableContainer').classList.add('d-none');
+                document.getElementById('usuariosTableContainer').classList.add('d-none');
+
+                if (type === 'empresas') {
+                    document.getElementById('sectionTitle').textContent = 'Listado de Empresas';
+                    document.getElementById('empresasTableContainer').classList.remove('d-none');
+                    loadEmpresas(0);
+                } else if (type === 'usuarios') {
+                    document.getElementById('sectionTitle').textContent = 'Listado de Usuarios';
+                    document.getElementById('usuariosTableContainer').classList.remove('d-none');
+                    loadUsuarios(0);
                 }
-                thumbnailElement.dataset.label = file.name;
-                if (file.type.startsWith("image/")) {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => thumbnailElement.style.backgroundImage = `url('${reader.result}')`;
-                } else {
-                    thumbnailElement.style.backgroundImage = null;
-                }
+
+                // Scroll suave hacia la tabla
+                document.getElementById('dataSection').scrollIntoView({ behavior: 'smooth' });
             }
 
-            // --- Lógica de Subida de Archivos (Existente) ---
-            function uploadFile() {
-                const empresaId = document.getElementById('empresaSelect').value;
-                const description = document.getElementById('fileDescription').value;
-                const type = document.getElementById('fileType').value;
-                const fileInput = document.getElementById('fileInput');
-                const alertBox = document.getElementById('uploadAlert');
-
-                if (!empresaId || !description || !type || fileInput.files.length === 0) {
-                    alert('Por favor completa todos los campos.');
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('file', fileInput.files[0]);
-                formData.append('description', description);
-                formData.append('type', type);
-
-                fetch(`/api/admin/empresas/${empresaId}/files`, { method: 'POST', body: formData })
-                .then(response => {
-                    if (response.ok) {
-                        alert('Archivo subido exitosamente!');
-                        bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
-                    } else {
-                        alert('Error al subir archivo');
-                    }
-                });
+            function hideSection() {
+                document.getElementById('dataSection').classList.add('d-none');
             }
 
-            // --- Lógica de Empresas ---
+            // --- Carga de Empresas (Paginada) ---
+            function loadEmpresas(page) {
+                currentEmpresasPage = page;
+                fetch(`/api/admin/empresas?page=${page}&size=${pageSize}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const tbody = document.getElementById('empresasTableBody');
+                        tbody.innerHTML = '';
+                        data.content.forEach(e => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${e.id}</td>
+                                    <td>${e.name}</td>
+                                    <td>${e.reference_id}</td>
+                                    <td>${e.cuit || '-'}</td>
+                                    <td>${e.email || '-'}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteEmpresa(${e.id})"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        renderPagination('empresasPagination', data, loadEmpresas);
+                    });
+            }
+
+            // --- Carga de Usuarios (Paginada) ---
+            function loadUsuarios(page) {
+                currentUsuariosPage = page;
+                fetch(`/api/admin/usuarios?page=${page}&size=${pageSize}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const tbody = document.getElementById('usuariosTableBody');
+                        tbody.innerHTML = '';
+                        data.content.forEach(u => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${u.id}</td>
+                                    <td>${u.name}</td>
+                                    <td>${u.reference_id}</td>
+                                    <td>${u.email || '-'}</td>
+                                    <td>${u.empresaId || '-'}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteUsuario(${u.id})"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        renderPagination('usuariosPagination', data, loadUsuarios);
+                    });
+            }
+
+            // --- Renderizado de Paginación ---
+            function renderPagination(elementId, pageData, loadFunction) {
+                const nav = document.getElementById(elementId);
+                nav.innerHTML = '';
+
+                // Botón Anterior
+                const prevLi = document.createElement('li');
+                prevLi.className = `page-item ${pageData.first ? 'disabled' : ''}`;
+                prevLi.innerHTML = `<a class="page-link" href="#" onclick="return false;">Anterior</a>`;
+                prevLi.onclick = () => { if (!pageData.first) loadFunction(pageData.number - 1); };
+                nav.appendChild(prevLi);
+
+                // Info de página
+                const infoLi = document.createElement('li');
+                infoLi.className = 'page-item disabled';
+                infoLi.innerHTML = `<span class="page-link">Página ${pageData.number + 1} de ${pageData.totalPages}</span>`;
+                nav.appendChild(infoLi);
+
+                // Botón Siguiente
+                const nextLi = document.createElement('li');
+                nextLi.className = `page-item ${pageData.last ? 'disabled' : ''}`;
+                nextLi.innerHTML = `<a class="page-link" href="#" onclick="return false;">Siguiente</a>`;
+                nextLi.onclick = () => { if (!pageData.last) loadFunction(pageData.number + 1); };
+                nav.appendChild(nextLi);
+            }
+
+            // --- Funciones CRUD (Existentes) ---
             function createEmpresa() {
                 const data = {
                     name: document.getElementById('empresaName').value,
-                    reference_id: document.getElementById('empresaRefId').value
+                    reference_id: document.getElementById('empresaRefId').value,
+                    cuit: document.getElementById('empresaCuit').value,
+                    email: document.getElementById('empresaEmail').value
                 };
                 fetch('/api/admin/empresas', {
                     method: 'POST',
@@ -364,31 +418,12 @@
                     if(res.ok) {
                         alert('Empresa creada');
                         bootstrap.Modal.getInstance(document.getElementById('createEmpresaModal')).hide();
-                        location.reload(); // Recargar para actualizar selectores
+                        if(!document.getElementById('empresasTableContainer').classList.contains('d-none')) {
+                            loadEmpresas(currentEmpresasPage);
+                        }
+                        location.reload(); // Para actualizar selectores
                     } else alert('Error al crear empresa');
                 });
-            }
-
-            function openListEmpresasModal() {
-                fetch('/api/admin/empresas')
-                    .then(res => res.json())
-                    .then(empresas => {
-                        const tbody = document.getElementById('empresasTableBody');
-                        tbody.innerHTML = '';
-                        empresas.forEach(e => {
-                            tbody.innerHTML += `
-                                <tr>
-                                    <td>${e.id}</td>
-                                    <td>${e.name}</td>
-                                    <td>${e.reference_id}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteEmpresa(${e.id})">Eliminar</button>
-                                    </td>
-                                </tr>
-                            `;
-                        });
-                        new bootstrap.Modal(document.getElementById('listEmpresasModal')).show();
-                    });
             }
 
             function deleteEmpresa(id) {
@@ -396,19 +431,17 @@
                     fetch(`/api/admin/empresas/${id}`, { method: 'DELETE' })
                         .then(res => {
                             if(res.ok) {
-                                alert('Empresa eliminada');
-                                openListEmpresasModal(); // Recargar lista
-                                location.reload();
+                                loadEmpresas(currentEmpresasPage);
                             } else alert('Error al eliminar');
                         });
                 }
             }
 
-            // --- Lógica de Usuarios ---
             function createUsuario() {
                 const data = {
                     name: document.getElementById('usuarioName').value,
                     reference_id: document.getElementById('usuarioRefId').value,
+                    email: document.getElementById('usuarioEmail').value,
                     empresaId: document.getElementById('usuarioEmpresaSelect').value
                 };
                 fetch('/api/admin/usuarios', {
@@ -419,31 +452,11 @@
                     if(res.ok) {
                         alert('Usuario creado');
                         bootstrap.Modal.getInstance(document.getElementById('createUsuarioModal')).hide();
+                        if(!document.getElementById('usuariosTableContainer').classList.contains('d-none')) {
+                            loadUsuarios(currentUsuariosPage);
+                        }
                     } else alert('Error al crear usuario');
                 });
-            }
-
-            function openListUsuariosModal() {
-                fetch('/api/admin/usuarios')
-                    .then(res => res.json())
-                    .then(usuarios => {
-                        const tbody = document.getElementById('usuariosTableBody');
-                        tbody.innerHTML = '';
-                        usuarios.forEach(u => {
-                            tbody.innerHTML += `
-                                <tr>
-                                    <td>${u.id}</td>
-                                    <td>${u.name}</td>
-                                    <td>${u.reference_id}</td>
-                                    <td>${u.empresaId}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteUsuario(${u.id})">Eliminar</button>
-                                    </td>
-                                </tr>
-                            `;
-                        });
-                        new bootstrap.Modal(document.getElementById('listUsuariosModal')).show();
-                    });
             }
 
             function deleteUsuario(id) {
@@ -451,11 +464,63 @@
                     fetch(`/api/admin/usuarios/${id}`, { method: 'DELETE' })
                         .then(res => {
                             if(res.ok) {
-                                alert('Usuario eliminado');
-                                openListUsuariosModal(); // Recargar lista
+                                loadUsuarios(currentUsuariosPage);
                             } else alert('Error al eliminar');
                         });
                 }
+            }
+
+            // --- Drag & Drop y Upload (Existente) ---
+            function uploadFile() {
+                const empresaId = document.getElementById('empresaSelect').value;
+                const description = document.getElementById('fileDescription').value;
+                const type = document.getElementById('fileType').value;
+                const fileInput = document.getElementById('fileInput');
+
+                if (!empresaId || !description || !type || fileInput.files.length === 0) {
+                    alert('Completa todos los campos'); return;
+                }
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('description', description);
+                formData.append('type', type);
+
+                fetch(`/api/admin/empresas/${empresaId}/files`, { method: 'POST', body: formData })
+                .then(res => {
+                    if (res.ok) {
+                        alert('Archivo subido');
+                        bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+                    } else alert('Error al subir');
+                });
+            }
+
+            // Inicialización Drag & Drop
+            document.querySelectorAll(".drop-zone__input").forEach((inputElement) => {
+                const dropZoneElement = inputElement.closest(".drop-zone");
+                dropZoneElement.addEventListener("click", (e) => inputElement.click());
+                inputElement.addEventListener("change", (e) => {
+                    if (inputElement.files.length) updateThumbnail(dropZoneElement, inputElement.files[0]);
+                });
+                dropZoneElement.addEventListener("dragover", (e) => { e.preventDefault(); dropZoneElement.classList.add("drop-zone--over"); });
+                ["dragleave", "dragend"].forEach((type) => { dropZoneElement.addEventListener(type, (e) => dropZoneElement.classList.remove("drop-zone--over")); });
+                dropZoneElement.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    if (e.dataTransfer.files.length) {
+                        inputElement.files = e.dataTransfer.files;
+                        updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
+                    }
+                    dropZoneElement.classList.remove("drop-zone--over");
+                });
+            });
+            function updateThumbnail(dropZoneElement, file) {
+                let thumbnailElement = dropZoneElement.querySelector(".drop-zone__thumb");
+                if (dropZoneElement.querySelector(".drop-zone__prompt")) dropZoneElement.querySelector(".drop-zone__prompt").remove();
+                if (!thumbnailElement) {
+                    thumbnailElement = document.createElement("div");
+                    thumbnailElement.classList.add("drop-zone__thumb");
+                    dropZoneElement.appendChild(thumbnailElement);
+                }
+                thumbnailElement.dataset.label = file.name;
             }
         </script>
     </div>

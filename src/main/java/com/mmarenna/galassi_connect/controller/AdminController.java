@@ -10,6 +10,9 @@ import com.mmarenna.galassi_connect.model.entity.Usuario;
 import com.mmarenna.galassi_connect.model.entity.Vendedor;
 import com.mmarenna.galassi_connect.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -63,34 +66,38 @@ public class AdminController {
     // ==========================================
 
     @GetMapping("/empresas")
-    public ResponseEntity<List<EmpresaDTO>> getAllEmpresas() {
-        List<Empresa> empresas = empresaService.getAll();
-        return ResponseEntity.ok(empresas.stream().map(this::mapToEmpresaDTO).collect(Collectors.toList()));
+    public ResponseEntity<Page<EmpresaDTO>> getAllEmpresas(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Empresa> empresasPage = empresaService.getAllPaginated(pageable);
+        Page<EmpresaDTO> dtoPage = empresasPage.map(this::mapToEmpresaDTO);
+        
+        return ResponseEntity.ok(dtoPage);
     }
 
     @PostMapping("/empresas")
-    public ResponseEntity<EmpresaDTO> createEmpresa(@RequestBody EmpresaDTO empresaDTO) {
-        if (empresaDTO.getReference_id() == null || empresaDTO.getReference_id().isEmpty()) {
+    public ResponseEntity<EmpresaDTO> createEmpresa(@RequestBody EmpresaDTO dto) {
+        if (dto.getReference_id() == null || dto.getReference_id().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
         
         Empresa empresa = new Empresa();
-        empresa.setName(empresaDTO.getName());
-        empresa.setReference_id(empresaDTO.getReference_id());
+        updateEmpresaFromDTO(empresa, dto);
         
         Empresa saved = empresaService.save(empresa);
         return ResponseEntity.ok(mapToEmpresaDTO(saved));
     }
 
     @PutMapping("/empresas/{id}")
-    public ResponseEntity<EmpresaDTO> updateEmpresa(@PathVariable Long id, @RequestBody EmpresaDTO empresaDTO) {
+    public ResponseEntity<EmpresaDTO> updateEmpresa(@PathVariable Long id, @RequestBody EmpresaDTO dto) {
         Empresa empresa = empresaService.getById(id);
         if (empresa == null) {
             return ResponseEntity.notFound().build();
         }
         
-        empresa.setName(empresaDTO.getName());
-        empresa.setReference_id(empresaDTO.getReference_id());
+        updateEmpresaFromDTO(empresa, dto);
         
         Empresa updated = empresaService.save(empresa);
         return ResponseEntity.ok(mapToEmpresaDTO(updated));
@@ -138,39 +145,41 @@ public class AdminController {
     // ==========================================
 
     @GetMapping("/usuarios")
-    public ResponseEntity<List<UsuarioDTO>> getAllUsuarios() {
-        List<Usuario> usuarios = usuarioService.getAll();
-        return ResponseEntity.ok(usuarios.stream().map(this::mapToUsuarioDTO).collect(Collectors.toList()));
+    public ResponseEntity<Page<UsuarioDTO>> getAllUsuarios(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Usuario> usuariosPage = usuarioService.getAllPaginated(pageable);
+        Page<UsuarioDTO> dtoPage = usuariosPage.map(this::mapToUsuarioDTO);
+        
+        return ResponseEntity.ok(dtoPage);
     }
 
     @PostMapping("/usuarios")
-    public ResponseEntity<UsuarioDTO> createUsuario(@RequestBody UsuarioDTO usuarioDTO) {
-        if (usuarioDTO.getReference_id() == null || usuarioDTO.getReference_id().isEmpty()) {
+    public ResponseEntity<UsuarioDTO> createUsuario(@RequestBody UsuarioDTO dto) {
+        if (dto.getReference_id() == null || dto.getReference_id().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
         
-        if (usuarioDTO.getEmpresaId() != null) {
-            Empresa empresa = empresaService.getById(usuarioDTO.getEmpresaId());
+        if (dto.getEmpresaId() != null) {
+            Empresa empresa = empresaService.getById(dto.getEmpresaId());
             if (empresa == null) {
                 return ResponseEntity.badRequest().build();
             }
         }
 
         Usuario usuario = new Usuario();
-        usuario.setName(usuarioDTO.getName());
-        usuario.setReference_id(usuarioDTO.getReference_id());
-        usuario.setEmpresaId(usuarioDTO.getEmpresaId());
+        updateUsuarioFromDTO(usuario, dto);
 
         Usuario saved = usuarioService.save(usuario);
         return ResponseEntity.ok(mapToUsuarioDTO(saved));
     }
 
     @PutMapping("/usuarios/{id}")
-    public ResponseEntity<UsuarioDTO> updateUsuario(@PathVariable Long id, @RequestBody UsuarioDTO usuarioDTO) {
+    public ResponseEntity<UsuarioDTO> updateUsuario(@PathVariable Long id, @RequestBody UsuarioDTO dto) {
         return usuarioService.findById(id).map(usuario -> {
-            usuario.setName(usuarioDTO.getName());
-            usuario.setReference_id(usuarioDTO.getReference_id());
-            usuario.setEmpresaId(usuarioDTO.getEmpresaId());
+            updateUsuarioFromDTO(usuario, dto);
             
             Usuario updated = usuarioService.save(usuario);
             return ResponseEntity.ok(mapToUsuarioDTO(updated));
@@ -186,7 +195,31 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- Mappers Manuales ---
+    // --- Helpers & Mappers ---
+
+    private void updateEmpresaFromDTO(Empresa entity, EmpresaDTO dto) {
+        entity.setName(dto.getName());
+        entity.setReference_id(dto.getReference_id());
+        entity.setDireccion(dto.getDireccion());
+        entity.setLocalidad(dto.getLocalidad());
+        entity.setTelefono(dto.getTelefono());
+        entity.setCuit(dto.getCuit());
+        entity.setCp(dto.getCp());
+        entity.setProvincia(dto.getProvincia());
+        entity.setEmail(dto.getEmail());
+    }
+
+    private void updateUsuarioFromDTO(Usuario entity, UsuarioDTO dto) {
+        entity.setName(dto.getName());
+        entity.setReference_id(dto.getReference_id());
+        entity.setEmpresaId(dto.getEmpresaId());
+        entity.setEmail(dto.getEmail());
+        entity.setDireccion(dto.getDireccion());
+        entity.setLocalidad(dto.getLocalidad());
+        entity.setTelefono(dto.getTelefono());
+        entity.setProvincia(dto.getProvincia());
+        entity.setCuit(dto.getCuit());
+    }
 
     private FileDTO mapToFileDTO(File file) {
         FileDTO dto = new FileDTO();
@@ -198,11 +231,18 @@ public class AdminController {
         return dto;
     }
 
-    private EmpresaDTO mapToEmpresaDTO(Empresa empresa) {
+    private EmpresaDTO mapToEmpresaDTO(Empresa entity) {
         EmpresaDTO dto = new EmpresaDTO();
-        dto.setId(empresa.getId());
-        dto.setName(empresa.getName());
-        dto.setReference_id(empresa.getReference_id());
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setReference_id(entity.getReference_id());
+        dto.setDireccion(entity.getDireccion());
+        dto.setLocalidad(entity.getLocalidad());
+        dto.setTelefono(entity.getTelefono());
+        dto.setCuit(entity.getCuit());
+        dto.setCp(entity.getCp());
+        dto.setProvincia(entity.getProvincia());
+        dto.setEmail(entity.getEmail());
         return dto;
     }
 
@@ -215,12 +255,18 @@ public class AdminController {
         return dto;
     }
 
-    private UsuarioDTO mapToUsuarioDTO(Usuario usuario) {
+    private UsuarioDTO mapToUsuarioDTO(Usuario entity) {
         UsuarioDTO dto = new UsuarioDTO();
-        dto.setId(usuario.getId());
-        dto.setName(usuario.getName());
-        dto.setReference_id(usuario.getReference_id());
-        dto.setEmpresaId(usuario.getEmpresaId());
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setReference_id(entity.getReference_id());
+        dto.setEmpresaId(entity.getEmpresaId());
+        dto.setEmail(entity.getEmail());
+        dto.setDireccion(entity.getDireccion());
+        dto.setLocalidad(entity.getLocalidad());
+        dto.setTelefono(entity.getTelefono());
+        dto.setProvincia(entity.getProvincia());
+        dto.setCuit(entity.getCuit());
         return dto;
     }
 }

@@ -4,35 +4,97 @@
       layout:decorate="~{layout/base}">
 <head>
     <title>Inicio</title>
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #0f4c81 0%, #0a365e 100%);
+            color: white;
+        }
+        .partner-logo {
+            height: 100px;
+            object-fit: contain;
+            filter: grayscale(100%);
+            transition: filter 0.3s ease, transform 0.3s ease;
+            opacity: 0.7;
+        }
+        .partner-logo:hover {
+            filter: grayscale(0%);
+            transform: scale(1.05);
+            opacity: 1;
+        }
+        .partners-section {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+    </style>
 </head>
 <body>
     <div layout:fragment="content">
-        <div class="p-5 mb-4 bg-light rounded-3 text-center">
-            <div class="container-fluid py-5">
-                <h1 class="display-5 fw-bold">Bienvenido a Galassi Connect</h1>
-                <p class="col-md-8 fs-4 mx-auto">Plataforma de gestión de archivos y conexiones empresariales.</p>
+        <!-- Hero Section con fondo oscuro -->
+        <div class="p-5 mb-5 rounded-3 text-center shadow hero-section">
+            <div class="container-fluid py-4">
+                <h1 class="display-5 fw-bold text-white">Bienvenido a Galassi Connect</h1>
+                <p class="col-md-8 fs-5 mx-auto text-light opacity-75">Plataforma integral de gestión de archivos y conexiones empresariales.</p>
 
                 <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mt-4">
-                    <a href="/login" class="btn btn-primary btn-lg px-4 gap-3">
+                    <a href="/login" class="btn btn-light btn-lg px-5 gap-3 shadow-sm text-primary fw-bold">
                         <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="row align-items-md-stretch">
-            <div class="col-md-6">
-                <div class="h-100 p-5 text-white bg-dark rounded-3">
-                    <h2>Para Administradores</h2>
-                    <p>Gestione empresas, cargue archivos y administre usuarios y vendedores desde un panel centralizado.</p>
-                    <a href="/login" class="btn btn-outline-light" type="button">Acceso Admin</a>
+        <!-- Accesos Rápidos -->
+        <div class="row align-items-md-stretch mb-5">
+            <div class="col-md-6 mb-3 mb-md-0">
+                <div class="h-100 p-5 text-white bg-dark rounded-3 shadow-sm position-relative overflow-hidden" style="background: #2c3e50 !important;">
+                    <div class="position-relative z-1">
+                        <h2>Para Administradores</h2>
+                        <p class="text-light opacity-75">Gestione empresas, cargue archivos y administre usuarios y vendedores desde un panel centralizado.</p>
+                        <a href="/login" class="btn btn-outline-light mt-2">Acceso Admin</a>
+                    </div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="h-100 p-5 bg-light border rounded-3">
-                    <h2>Para Clientes</h2>
-                    <p>Acceda a los archivos de su empresa, filtre por tipo y descargue la información que necesita.</p>
-                    <a href="/login" class="btn btn-outline-dark" type="button">Acceso Clientes</a>
+                <div class="h-100 p-5 bg-white border rounded-3 shadow-sm">
+                    <h2 class="text-primary">Para Clientes</h2>
+                    <p class="text-muted">Acceda a los archivos de su empresa, filtre por tipo y descargue la información que necesita de forma segura.</p>
+                    <a href="/login" class="btn btn-outline-primary mt-2">Acceso Clientes</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Partners (Logos) -->
+        <div class="partners-section mb-5">
+            <h3 class="text-center mb-4 text-secondary fw-light">Empresas que trabajan con nosotros</h3>
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4 justify-content-center align-items-center text-center">
+                <div class="col">
+                    <img th:src="@{/images/Guma.jpg}" class="img-fluid partner-logo" alt="Guma">
+                </div>
+                <div class="col">
+                    <img th:src="@{/images/Dielo.jpg}" class="img-fluid partner-logo" alt="Dielo">
+                </div>
+                <div class="col">
+                    <img th:src="@{/images/Saenz.jpg}" class="img-fluid partner-logo" alt="Saenz">
+                </div>
+                <div class="col">
+                    <img th:src="@{/images/Vimar.jpg}" class="img-fluid partner-logo" alt="Vimar">
+                </div>
+                <div class="col">
+                    <img th:src="@{/images/Plenario.jpg}" class="img-fluid partner-logo" alt="Plenario">
+                </div>
+                <div class="col">
+                    <img th:src="@{/images/La farmaco.jpg}" class="img-fluid partner-logo" alt="La Farmaco">
+                </div>
+                <div class="col">
+                    <img th:src="@{/images/Carmen suain.jpg}" class="img-fluid partner-logo" alt="Carmen Suain">
+                </div>
+                <div class="col">
+                    <img th:src="@{/images/La providencia.jpg}" class="img-fluid partner-logo" alt="La Providencia">
+                </div>
+                <div class="col">
+                    <img th:src="@{/images/Urquiza(brurin).jpg}" class="img-fluid partner-logo" alt="Urquiza">
                 </div>
             </div>
         </div>

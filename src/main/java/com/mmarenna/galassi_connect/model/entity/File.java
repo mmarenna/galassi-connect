@@ -16,10 +16,9 @@ public class File {
     
     private Long empresaId;
 
-    // Nuevos campos para almacenamiento en BD
-    private String contentType; // MIME type (ej: application/pdf)
+    private String contentType;
 
     @Lob
-    @Column(length = 10000000) // Aumentamos el tamaño para permitir archivos grandes
+    @Column(length = 10000000)
     private byte[] data;
 }

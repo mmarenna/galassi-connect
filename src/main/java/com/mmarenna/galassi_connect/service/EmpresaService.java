@@ -3,6 +3,8 @@ package com.mmarenna.galassi_connect.service;
 import com.mmarenna.galassi_connect.model.entity.Empresa;
 import com.mmarenna.galassi_connect.repository.EmpresaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -13,6 +15,10 @@ public class EmpresaService {
 
     public List<Empresa> getAll() {
         return empresaRepository.findAll();
+    }
+
+    public Page<Empresa> getAllPaginated(Pageable pageable) {
+        return empresaRepository.findAll(pageable);
     }
 
     public Empresa getById(Long id) {
