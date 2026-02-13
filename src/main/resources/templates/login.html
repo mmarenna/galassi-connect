@@ -8,36 +8,35 @@
 <body>
     <div layout:fragment="content">
         <div class="row justify-content-center mt-5">
-            <div class="col-md-5">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white text-center">
-                        <h4><i class="bi bi-person-circle"></i> Iniciar Sesión</h4>
+            <div class="col-md-4">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-primary text-white text-center py-3">
+                        <h4 class="mb-0 fw-bold"><i class="bi bi-person-circle me-2"></i>Acceso</h4>
                     </div>
                     <div class="card-body p-4">
-                        <div th:if="${param.error}" class="alert alert-danger text-center">
-                            Credenciales incorrectas.
+                        <div th:if="${param.error}" class="alert alert-danger text-center small">
+                            Usuario o contraseña incorrectos.
+                        </div>
+                        <div th:if="${param.logout}" class="alert alert-success text-center small">
+                            Has cerrado sesión correctamente.
                         </div>
 
-                        <form action="/auth/login" method="post">
+                        <form th:action="@{/auth/login}" method="post">
                             <div class="mb-3">
-                                <label for="userId" class="form-label">Seleccione Usuario</label>
-                                <select class="form-select" id="userId" name="userId" required autofocus>
-                                    <option value="" selected disabled>Seleccione...</option>
-                                    <option value="admin" class="fw-bold text-primary">-- ADMINISTRADOR --</option>
-                                    <option disabled>--------------------------</option>
-                                    <th:block th:each="usuario : ${usuarios}">
-                                        <option th:value="${usuario.id}" th:text="${usuario.name} + ' (Ref: ' + ${usuario.reference_id} + ')'"></option>
-                                    </th:block>
-                                </select>
+                                <label for="username" class="form-label fw-bold text-secondary">Usuario</label>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="Ingrese su usuario" required autofocus>
                             </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Contraseña</label>
-                                <input type="password" class="form-control" id="password" name="password" placeholder="Cualquiera por ahora" required>
+                            <div class="mb-4">
+                                <label for="password" class="form-label fw-bold text-secondary">Contraseña</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Ingrese su contraseña" required>
                             </div>
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary">Ingresar</button>
+                                <button type="submit" class="btn btn-primary fw-bold">Ingresar</button>
                             </div>
                         </form>
+                    </div>
+                    <div class="card-footer text-center bg-light py-3">
+                        <small class="text-muted">Galassi Connect &copy; 2026</small>
                     </div>
                 </div>
             </div>

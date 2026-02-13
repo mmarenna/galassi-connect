@@ -36,6 +36,22 @@
             transform: translateX(-50%);
             border-radius: 2px;
         }
+
+        /* Estilos para el filtro de empresas */
+        .empresa-card {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent;
+        }
+        .empresa-card:hover {
+            transform: translateX(5px);
+            background-color: #f8f9fa !important;
+        }
+        .empresa-card.active {
+            background-color: #e3f2fd !important;
+            border-left-color: #0f4c81;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+        }
     </style>
 </head>
 <body>
@@ -51,11 +67,12 @@
         </div>
 
         <div class="row">
-            <!-- Columna Izquierda: Información de Empresas -->
+            <!-- Columna Izquierda: Información de Empresas (Filtro) -->
             <div class="col-md-3 mb-4">
                 <div class="card shadow-sm h-100 border-0">
                     <div class="card-header bg-light border-bottom-0">
                         <h6 class="mb-0 text-dark fw-bold"><i class="bi bi-building me-2"></i>Mis Empresas</h6>
+                        <small class="text-muted" style="font-size: 0.75rem;">Click para filtrar</small>
                     </div>
                     <div class="card-body bg-white">
                         <div id="empresasList" class="d-flex flex-column gap-2">
@@ -81,38 +98,38 @@
             </div>
         </div>
 
-        <!-- ID del usuario inyectado desde el controlador para uso en JS -->
-        <input type="hidden" id="currentUserId" th:value="${usuario.id}">
-
         <script>
-            // Mapa para guardar ID -> Nombre de empresa
+            // Variables Globales
             const empresasMap = new Map();
+            let allFiles = []; // Guardamos todos los archivos aquí
+            let selectedEmpresaId = null; // ID de la empresa seleccionada para filtrar
 
             document.addEventListener('DOMContentLoaded', function() {
                 loadUserData();
             });
 
             function loadUserData() {
-                const userId = document.getElementById('currentUserId').value;
-
                 // 1. Obtener datos de las empresas
-                fetch(`/api/user/${userId}/empresas`)
+                fetch(`/api/user/empresas`)
                     .then(response => {
+                        if (response.status === 401) window.location.href = '/login';
                         if (!response.ok) throw new Error('Error al cargar empresas');
                         return response.json();
                     })
                     .then(empresas => {
                         const lista = document.getElementById('empresasList');
-                        lista.innerHTML = ''; // Limpiar spinner
+                        lista.innerHTML = '';
 
                         if (empresas.length > 0) {
                             empresas.forEach(e => {
-                                // Guardar en el mapa para usar después
                                 empresasMap.set(e.id, e.name);
 
-                                // Renderizar en la lista lateral
+                                // Crear tarjeta de empresa
                                 const item = document.createElement('div');
-                                item.className = 'p-3 border rounded bg-light shadow-sm mb-2';
+                                item.className = 'p-3 border rounded bg-light shadow-sm mb-2 empresa-card';
+                                item.dataset.id = e.id; // Guardar ID en atributo data
+                                item.onclick = () => toggleEmpresaFilter(e.id, item); // Evento click
+
                                 item.innerHTML = `
                                     <div class="fw-bold text-primary">${e.name}</div>
                                     <small class="text-muted d-block">Ref: ${e.reference_id}</small>
@@ -123,8 +140,7 @@
                             lista.innerHTML = '<div class="text-center text-muted py-3"><i class="bi bi-building-slash fs-4 d-block mb-2"></i>Sin empresas asignadas</div>';
                         }
 
-                        // 2. Cargar archivos una vez que tenemos los nombres de las empresas
-                        loadFiles(userId);
+                        loadFiles();
                     })
                     .catch(error => {
                         console.error(error);
@@ -132,87 +148,123 @@
                     });
             }
 
-            function loadFiles(userId) {
-                const container = document.getElementById('filesContainer');
-                const noFilesAlert = document.getElementById('noFilesAlert');
+            function toggleEmpresaFilter(empresaId, element) {
+                // Gestionar estado visual
+                const cards = document.querySelectorAll('.empresa-card');
 
-                fetch(`/api/user/${userId}/files`)
-                    .then(response => response.json())
+                if (selectedEmpresaId === empresaId) {
+                    // Deseleccionar (volver a mostrar todo)
+                    selectedEmpresaId = null;
+                    element.classList.remove('active');
+                } else {
+                    // Seleccionar nueva
+                    selectedEmpresaId = empresaId;
+                    cards.forEach(c => c.classList.remove('active')); // Limpiar otros
+                    element.classList.add('active');
+                }
+
+                // Filtrar y renderizar
+                filterAndRenderFiles();
+            }
+
+            function loadFiles() {
+                fetch(`/api/user/files`)
+                    .then(response => {
+                        if (response.status === 401) window.location.href = '/login';
+                        return response.json();
+                    })
                     .then(files => {
-                        container.innerHTML = ''; // Limpiar spinner
-
-                        if (files.length === 0) {
-                            noFilesAlert.classList.remove('d-none');
-                            return;
-                        }
-
-                        noFilesAlert.classList.add('d-none');
-
-                        // Agrupar archivos por tipo
-                        const filesByType = {};
-                        files.forEach(file => {
-                            const type = file.type || 'Otros';
-                            if (!filesByType[type]) {
-                                filesByType[type] = [];
-                            }
-                            filesByType[type].push(file);
-                        });
-
-                        // Renderizar una tabla por cada tipo
-                        for (const [type, typeFiles] of Object.entries(filesByType)) {
-                            // Título del grupo
-                            const title = document.createElement('h4');
-                            title.className = 'file-group-title';
-                            title.innerHTML = `<i class="bi bi-folder2-open me-2"></i> ${type}`;
-                            container.appendChild(title);
-
-                            // Card para la tabla
-                            const card = document.createElement('div');
-                            card.className = 'card shadow-sm mb-4 border-0';
-
-                            const tableResponsive = document.createElement('div');
-                            tableResponsive.className = 'table-responsive';
-
-                            const table = document.createElement('table');
-                            table.className = 'table table-hover align-middle mb-0';
-                            table.innerHTML = `
-                                <thead class="table-light">
-                                    <tr>
-                                        <th style="width: 30%;">Nombre del Archivo</th>
-                                        <th style="width: 30%;">Descripción</th>
-                                        <th style="width: 25%;">Empresa</th>
-                                        <th style="width: 15%;">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${typeFiles.map(file => `
-                                        <tr>
-                                            <td><i class="bi bi-file-earmark-text me-2 text-primary"></i>${file.name}</td>
-                                            <td>${file.description || '-'}</td>
-                                            <td>
-                                                <span class="badge bg-white text-dark border shadow-sm">
-                                                    ${empresasMap.get(file.empresaId) || 'ID: ' + file.empresaId}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <a href="/api/user/files/${file.id}/download" class="btn btn-sm btn-outline-primary" target="_blank">
-                                                    <i class="bi bi-download"></i> Descargar
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            `;
-
-                            tableResponsive.appendChild(table);
-                            card.appendChild(tableResponsive);
-                            container.appendChild(card);
-                        }
+                        allFiles = files; // Guardar en global
+                        filterAndRenderFiles(); // Renderizar inicial
                     })
                     .catch(error => {
                         console.error('Error cargando archivos:', error);
-                        container.innerHTML = '<div class="alert alert-danger">Error al cargar los archivos.</div>';
+                        document.getElementById('filesContainer').innerHTML = '<div class="alert alert-danger">Error al cargar los archivos.</div>';
                     });
+            }
+
+            function filterAndRenderFiles() {
+                const container = document.getElementById('filesContainer');
+                const noFilesAlert = document.getElementById('noFilesAlert');
+
+                // Filtrar si hay empresa seleccionada
+                let filesToRender = allFiles;
+                if (selectedEmpresaId) {
+                    filesToRender = allFiles.filter(f => f.empresaId === selectedEmpresaId);
+                }
+
+                container.innerHTML = '';
+
+                if (filesToRender.length === 0) {
+                    if (allFiles.length > 0) {
+                        // Hay archivos pero no para esta empresa
+                        container.innerHTML = '<div class="alert alert-warning shadow-sm border-0"><i class="bi bi-filter me-2"></i>No hay archivos para la empresa seleccionada.</div>';
+                        noFilesAlert.classList.add('d-none');
+                    } else {
+                        // No hay archivos en absoluto
+                        noFilesAlert.classList.remove('d-none');
+                    }
+                    return;
+                }
+
+                noFilesAlert.classList.add('d-none');
+
+                // Agrupar archivos por tipo
+                const filesByType = {};
+                filesToRender.forEach(file => {
+                    const type = file.type || 'Otros';
+                    if (!filesByType[type]) filesByType[type] = [];
+                    filesByType[type].push(file);
+                });
+
+                // Renderizar tablas
+                for (const [type, typeFiles] of Object.entries(filesByType)) {
+                    const title = document.createElement('h4');
+                    title.className = 'file-group-title';
+                    title.innerHTML = `<i class="bi bi-folder2-open me-2"></i> ${type}`;
+                    container.appendChild(title);
+
+                    const card = document.createElement('div');
+                    card.className = 'card shadow-sm mb-4 border-0';
+
+                    const tableResponsive = document.createElement('div');
+                    tableResponsive.className = 'table-responsive';
+
+                    const table = document.createElement('table');
+                    table.className = 'table table-hover align-middle mb-0';
+                    table.innerHTML = `
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 30%;">Nombre del Archivo</th>
+                                <th style="width: 30%;">Descripción</th>
+                                <th style="width: 25%;">Empresa</th>
+                                <th style="width: 15%;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${typeFiles.map(file => `
+                                <tr>
+                                    <td><i class="bi bi-file-earmark-text me-2 text-primary"></i>${file.name}</td>
+                                    <td>${file.description || '-'}</td>
+                                    <td>
+                                        <span class="badge bg-white text-dark border shadow-sm">
+                                            ${empresasMap.get(file.empresaId) || 'ID: ' + file.empresaId}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="/api/user/files/${file.id}/download" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="bi bi-download"></i> Descargar
+                                        </a>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    `;
+
+                    tableResponsive.appendChild(table);
+                    card.appendChild(tableResponsive);
+                    container.appendChild(card);
+                }
             }
         </script>
     </div>

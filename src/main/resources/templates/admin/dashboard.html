@@ -245,6 +245,36 @@
 
         <!-- ================= MODALES ================= -->
 
+        <!-- Modal Gestión de Acceso -->
+        <div class="modal fade" id="manageAccessModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title">Gestionar Acceso</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="accessForm">
+                            <input type="hidden" id="accessUserId">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Usuario (Login)</label>
+                                <input type="text" class="form-control" id="accessUsername" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Contraseña</label>
+                                <input type="password" class="form-control" id="accessPassword" required placeholder="Nueva contraseña">
+                            </div>
+                            <div id="accessStatus" class="alert alert-info d-none"></div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" onclick="saveAccess()">Guardar Credenciales</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal Auditoría de Archivos Usuario -->
         <div class="modal fade" id="auditFilesModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
@@ -471,7 +501,7 @@
                     return;
                 }
 
-                fetch(`/api/user/${userId}/files`)
+                fetch(`/api/admin/usuarios/${userId}/files`)
                     .then(res => res.json())
                     .then(files => {
                         const tbody = document.getElementById('auditFilesTableBody');
@@ -564,6 +594,49 @@
                 })
             }
 
+            // --- Gestión de Credenciales (NUEVO) ---
+            function openAccessModal(userId) {
+                document.getElementById('accessUserId').value = userId;
+                document.getElementById('accessUsername').value = '';
+                document.getElementById('accessPassword').value = '';
+                document.getElementById('accessStatus').classList.add('d-none');
+
+                fetch(`/api/admin/usuarios/${userId}/credenciales`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.hasAccess) {
+                            document.getElementById('accessUsername').value = data.username;
+                            document.getElementById('accessStatus').textContent = 'Este usuario ya tiene acceso. Puedes actualizar la contraseña.';
+                            document.getElementById('accessStatus').classList.remove('d-none');
+                        }
+                        new bootstrap.Modal(document.getElementById('manageAccessModal')).show();
+                    });
+            }
+
+            function saveAccess() {
+                const userId = document.getElementById('accessUserId').value;
+                const username = document.getElementById('accessUsername').value;
+                const password = document.getElementById('accessPassword').value;
+
+                if(!username || !password) {
+                    Swal.fire('Error', 'Usuario y contraseña son obligatorios', 'error');
+                    return;
+                }
+
+                fetch(`/api/admin/usuarios/${userId}/credenciales`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, password})
+                }).then(res => {
+                    if(res.ok) {
+                        Swal.fire('Guardado', 'Credenciales actualizadas correctamente', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('manageAccessModal')).hide();
+                    } else {
+                        Swal.fire('Error', 'No se pudo guardar. El usuario podría estar duplicado.', 'error');
+                    }
+                });
+            }
+
             // --- Carga de Empresas (Paginada) ---
             function loadEmpresas(page) {
                 currentEmpresasPage = page;
@@ -608,7 +681,8 @@
                                     <td>${u.email || '-'}</td>
                                     <td><span class="badge bg-info text-dark">${empresasCount} Asignadas</span></td>
                                     <td>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteUsuario(${u.id})"><i class="bi bi-trash"></i></button>
+                                        <button class="btn btn-sm btn-dark me-1" onclick="openAccessModal(${u.id})" title="Gestionar Acceso"><i class="bi bi-key"></i></button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteUsuario(${u.id})" title="Eliminar"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             `;

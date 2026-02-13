@@ -1,21 +1,17 @@
 package com.mmarenna.galassi_connect.controller;
 
-import com.mmarenna.galassi_connect.model.dto.EmpresaDTO;
-import com.mmarenna.galassi_connect.model.dto.FileDTO;
-import com.mmarenna.galassi_connect.model.dto.UsuarioDTO;
-import com.mmarenna.galassi_connect.model.dto.VendedorDTO;
-import com.mmarenna.galassi_connect.model.entity.Empresa;
-import com.mmarenna.galassi_connect.model.entity.File;
-import com.mmarenna.galassi_connect.model.entity.Usuario;
-import com.mmarenna.galassi_connect.model.entity.Vendedor;
-import com.mmarenna.galassi_connect.model.entity.Vinculacion;
+import com.mmarenna.galassi_connect.model.dto.*;
+import com.mmarenna.galassi_connect.model.entity.*;
+import com.mmarenna.galassi_connect.repository.CredencialRepository;
 import com.mmarenna.galassi_connect.repository.VinculacionRepository;
 import com.mmarenna.galassi_connect.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,6 +39,12 @@ public class AdminController {
     
     @Autowired
     private VinculacionRepository vinculacionRepository;
+
+    @Autowired
+    private CredencialRepository credencialRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     // ==========================================
     // 1. GESTIÓN DE ARCHIVOS
@@ -191,7 +193,6 @@ public class AdminController {
 
         Usuario saved = usuarioService.save(usuario);
         
-        // Guardar relaciones en Vinculacion
         if (dto.getEmpresaIds() != null) {
             for (Long empresaId : dto.getEmpresaIds()) {
                 Empresa emp = empresaService.getById(empresaId);
@@ -199,7 +200,7 @@ public class AdminController {
                     Vinculacion v = new Vinculacion();
                     v.setUsuarioReferenceId(saved.getReference_id());
                     v.setEmpresaReferenceId(emp.getReference_id());
-                    v.setVendedorReferenceId(0L); // Default por ahora
+                    v.setVendedorReferenceId(0L);
                     vinculacionRepository.save(v);
                 }
             }
@@ -243,8 +244,71 @@ public class AdminController {
         List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(u.get().getReference_id());
         vinculacionRepository.deleteAll(vinculaciones);
         
+        // También borrar credenciales si existen
+        credencialRepository.findByUsuarioId(id).ifPresent(credencialRepository::delete);
+        
         usuarioService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // --- NUEVO: Auditoría de Archivos de Usuario ---
+    @GetMapping("/usuarios/{userId}/files")
+    public ResponseEntity<List<FileDTO>> getUserFilesForAdmin(@PathVariable Long userId) {
+        Optional<Usuario> usuarioOpt = usuarioService.findById(userId);
+        if (usuarioOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
+            List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(usuario.getReference_id());
+            
+            List<Long> empresaIds = new ArrayList<>();
+            for (Vinculacion v : vinculaciones) {
+                Optional<Empresa> emp = empresaService.getByReferenceId(v.getEmpresaReferenceId());
+                emp.ifPresent(value -> empresaIds.add(value.getId()));
+            }
+            
+            if (empresaIds.isEmpty()) {
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
+            List<File> files = fileService.getByEmpresaIdsAndType(empresaIds, null);
+            List<FileDTO> dtos = files.stream()
+                    .map(this::mapToFileDTO)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    // --- NUEVO: Gestión de Credenciales ---
+    @GetMapping("/usuarios/{userId}/credenciales")
+    public ResponseEntity<CredencialDTO> getCredencial(@PathVariable Long userId) {
+        Optional<Credencial> cred = credencialRepository.findByUsuarioId(userId);
+        CredencialDTO dto = new CredencialDTO();
+        if (cred.isPresent()) {
+            dto.setUsername(cred.get().getUsername());
+            dto.setHasAccess(true);
+        } else {
+            dto.setHasAccess(false);
+        }
+        return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/usuarios/{userId}/credenciales")
+    public ResponseEntity<CredencialDTO> saveCredencial(@PathVariable Long userId, @RequestBody CredencialDTO dto) {
+        Optional<Usuario> usuarioOpt = usuarioService.findById(userId);
+        if (usuarioOpt.isEmpty()) return ResponseEntity.notFound().build();
+
+        Credencial credencial = credencialRepository.findByUsuarioId(userId).orElse(new Credencial());
+        
+        credencial.setUsuario(usuarioOpt.get());
+        credencial.setUsername(dto.getUsername());
+        credencial.setPassword(passwordEncoder.encode(dto.getPassword()));
+        credencial.setRole("USER");
+
+        credencialRepository.save(credencial);
+        
+        dto.setHasAccess(true);
+        dto.setPassword(null); // No devolver el password
+        return ResponseEntity.ok(dto);
     }
 
     // --- Helpers & Mappers ---

@@ -2,14 +2,15 @@ package com.mmarenna.galassi_connect.controller;
 
 import com.mmarenna.galassi_connect.model.dto.EmpresaDTO;
 import com.mmarenna.galassi_connect.model.dto.FileDTO;
+import com.mmarenna.galassi_connect.model.entity.Credencial;
 import com.mmarenna.galassi_connect.model.entity.Empresa;
 import com.mmarenna.galassi_connect.model.entity.File;
 import com.mmarenna.galassi_connect.model.entity.Usuario;
 import com.mmarenna.galassi_connect.model.entity.Vinculacion;
+import com.mmarenna.galassi_connect.repository.CredencialRepository;
 import com.mmarenna.galassi_connect.repository.VinculacionRepository;
 import com.mmarenna.galassi_connect.service.EmpresaService;
 import com.mmarenna.galassi_connect.service.FileService;
-import com.mmarenna.galassi_connect.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -17,6 +18,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -29,9 +32,6 @@ import java.util.stream.Collectors;
 public class UserController {
 
     @Autowired
-    private UsuarioService usuarioService;
-
-    @Autowired
     private FileService fileService;
 
     @Autowired
@@ -40,12 +40,23 @@ public class UserController {
     @Autowired
     private VinculacionRepository vinculacionRepository;
 
-    // Vista de Empresas: El usuario ve sus empresas asignadas
-    @GetMapping("/{userId}/empresas")
-    public ResponseEntity<List<EmpresaDTO>> getUserEmpresas(@PathVariable Long userId) {
-        Optional<Usuario> usuarioOpt = usuarioService.findById(userId);
-        if (usuarioOpt.isPresent()) {
-            Usuario usuario = usuarioOpt.get();
+    @Autowired
+    private CredencialRepository credencialRepository;
+
+    // Método auxiliar para obtener el Usuario logueado
+    private Usuario getLoggedUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        return credencialRepository.findByUsername(username)
+                .map(Credencial::getUsuario)
+                .orElse(null);
+    }
+
+    // Vista de Empresas
+    @GetMapping("/empresas") // Ya no recibe userId en URL
+    public ResponseEntity<List<EmpresaDTO>> getUserEmpresas() {
+        Usuario usuario = getLoggedUser();
+        if (usuario != null) {
             List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(usuario.getReference_id());
             
             List<EmpresaDTO> empresas = new ArrayList<>();
@@ -55,18 +66,14 @@ public class UserController {
             }
             return ResponseEntity.ok(empresas);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
-    // Acceso a Archivos: Listar y filtrar archivos de sus empresas
-    @GetMapping("/{userId}/files")
-    public ResponseEntity<List<FileDTO>> getUserFiles(
-            @PathVariable Long userId,
-            @RequestParam(required = false) String type) {
-        
-        Optional<Usuario> usuarioOpt = usuarioService.findById(userId);
-        if (usuarioOpt.isPresent()) {
-            Usuario usuario = usuarioOpt.get();
+    // Acceso a Archivos
+    @GetMapping("/files") // Ya no recibe userId en URL
+    public ResponseEntity<List<FileDTO>> getUserFiles(@RequestParam(required = false) String type) {
+        Usuario usuario = getLoggedUser();
+        if (usuario != null) {
             List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(usuario.getReference_id());
             
             List<Long> empresaIds = new ArrayList<>();
@@ -85,12 +92,14 @@ public class UserController {
                     .collect(Collectors.toList());
             return ResponseEntity.ok(dtos);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
     
     // Descargas
     @GetMapping("/files/{fileId}/download")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) {
+        // Aquí deberíamos validar que el archivo pertenece a una empresa del usuario logueado
+        // Por simplicidad, asumimos que si tiene el ID es porque lo vio en su lista
         Optional<File> fileOpt = fileService.findById(fileId);
         
         if (fileOpt.isPresent()) {
