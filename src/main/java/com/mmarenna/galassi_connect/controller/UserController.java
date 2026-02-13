@@ -5,6 +5,8 @@ import com.mmarenna.galassi_connect.model.dto.FileDTO;
 import com.mmarenna.galassi_connect.model.entity.Empresa;
 import com.mmarenna.galassi_connect.model.entity.File;
 import com.mmarenna.galassi_connect.model.entity.Usuario;
+import com.mmarenna.galassi_connect.model.entity.Vinculacion;
+import com.mmarenna.galassi_connect.repository.VinculacionRepository;
 import com.mmarenna.galassi_connect.service.EmpresaService;
 import com.mmarenna.galassi_connect.service.FileService;
 import com.mmarenna.galassi_connect.service.UsuarioService;
@@ -17,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,22 +36,29 @@ public class UserController {
 
     @Autowired
     private EmpresaService empresaService;
+    
+    @Autowired
+    private VinculacionRepository vinculacionRepository;
 
-    // Vista de Empresa: El usuario ve su empresa asignada
-    @GetMapping("/{userId}/empresa")
-    public ResponseEntity<EmpresaDTO> getUserEmpresa(@PathVariable Long userId) {
+    // Vista de Empresas: El usuario ve sus empresas asignadas
+    @GetMapping("/{userId}/empresas")
+    public ResponseEntity<List<EmpresaDTO>> getUserEmpresas(@PathVariable Long userId) {
         Optional<Usuario> usuarioOpt = usuarioService.findById(userId);
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
-            if (usuario.getEmpresaId() != null) {
-                Empresa empresa = empresaService.getById(usuario.getEmpresaId());
-                return ResponseEntity.ok(mapToEmpresaDTO(empresa));
+            List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(usuario.getReference_id());
+            
+            List<EmpresaDTO> empresas = new ArrayList<>();
+            for (Vinculacion v : vinculaciones) {
+                Optional<Empresa> emp = empresaService.getByReferenceId(v.getEmpresaReferenceId());
+                emp.ifPresent(value -> empresas.add(mapToEmpresaDTO(value)));
             }
+            return ResponseEntity.ok(empresas);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    // Acceso a Archivos: Listar y filtrar archivos de su empresa
+    // Acceso a Archivos: Listar y filtrar archivos de sus empresas
     @GetMapping("/{userId}/files")
     public ResponseEntity<List<FileDTO>> getUserFiles(
             @PathVariable Long userId,
@@ -57,13 +67,23 @@ public class UserController {
         Optional<Usuario> usuarioOpt = usuarioService.findById(userId);
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
-            if (usuario.getEmpresaId() != null) {
-                List<File> files = fileService.getByEmpresaIdAndType(usuario.getEmpresaId(), type);
-                List<FileDTO> dtos = files.stream()
-                        .map(this::mapToFileDTO)
-                        .collect(Collectors.toList());
-                return ResponseEntity.ok(dtos);
+            List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(usuario.getReference_id());
+            
+            List<Long> empresaIds = new ArrayList<>();
+            for (Vinculacion v : vinculaciones) {
+                Optional<Empresa> emp = empresaService.getByReferenceId(v.getEmpresaReferenceId());
+                emp.ifPresent(value -> empresaIds.add(value.getId()));
             }
+            
+            if (empresaIds.isEmpty()) {
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
+            List<File> files = fileService.getByEmpresaIdsAndType(empresaIds, type);
+            List<FileDTO> dtos = files.stream()
+                    .map(this::mapToFileDTO)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }

@@ -178,7 +178,7 @@
                                     <th>Nombre</th>
                                     <th>Ref ID</th>
                                     <th>Email</th>
-                                    <th>Empresa ID</th>
+                                    <th>Empresas</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -238,7 +238,8 @@
                                 <select class="form-select" id="empresaSelect" required>
                                     <option value="" selected disabled>Seleccione una empresa...</option>
                                     <th:block th:each="empresa : ${empresas}">
-                                        <option th:value="${empresa.id}" th:text="${empresa.name}"></option>
+                                        <!-- AQUI ESTA EL CAMBIO: Agregado (Ref: ...) -->
+                                        <option th:value="${empresa.id}" th:text="${empresa.name} + ' (Ref: ' + ${empresa.reference_id} + ')'"></option>
                                     </th:block>
                                 </select>
                             </div>
@@ -330,13 +331,13 @@
                                 <input type="email" class="form-control" id="usuarioEmail">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Empresa</label>
-                                <select class="form-select" id="usuarioEmpresaSelect" required>
-                                    <option value="" selected disabled>Seleccione...</option>
+                                <label class="form-label">Empresas Asignadas</label>
+                                <select class="form-select" id="usuarioEmpresaSelect" multiple required style="height: 150px;">
                                     <th:block th:each="empresa : ${empresas}">
                                         <option th:value="${empresa.id}" th:text="${empresa.name}"></option>
                                     </th:block>
                                 </select>
+                                <small class="text-muted">Mantén presionado Ctrl (o Cmd) para seleccionar varias.</small>
                             </div>
                         </form>
                     </div>
@@ -450,13 +451,14 @@
                         const tbody = document.getElementById('usuariosTableBody');
                         tbody.innerHTML = '';
                         data.content.forEach(u => {
+                            const empresasCount = u.empresaIds ? u.empresaIds.length : 0;
                             tbody.innerHTML += `
                                 <tr>
                                     <td>${u.id}</td>
                                     <td>${u.name}</td>
                                     <td>${u.reference_id}</td>
                                     <td>${u.email || '-'}</td>
-                                    <td>${u.empresaId || '-'}</td>
+                                    <td><span class="badge bg-info text-dark">${empresasCount} Asignadas</span></td>
                                     <td>
                                         <button class="btn btn-sm btn-danger" onclick="deleteUsuario(${u.id})"><i class="bi bi-trash"></i></button>
                                     </td>
@@ -526,11 +528,14 @@
             }
 
             function createUsuario() {
+                const select = document.getElementById('usuarioEmpresaSelect');
+                const selectedEmpresas = Array.from(select.selectedOptions).map(option => parseInt(option.value));
+
                 const data = {
                     name: document.getElementById('usuarioName').value,
                     reference_id: document.getElementById('usuarioRefId').value,
                     email: document.getElementById('usuarioEmail').value,
-                    empresaId: document.getElementById('usuarioEmpresaSelect').value
+                    empresaIds: selectedEmpresas
                 };
                 fetch('/api/admin/usuarios', {
                     method: 'POST',

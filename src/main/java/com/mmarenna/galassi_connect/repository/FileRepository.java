@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface FileRepository extends JpaRepository<File, Long> {
     List<File> findByEmpresaId(Long empresaId);
+    List<File> findByEmpresaIdIn(List<Long> empresaIds); // Nuevo método
 }

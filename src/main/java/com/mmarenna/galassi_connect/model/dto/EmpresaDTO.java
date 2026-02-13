@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class EmpresaDTO {
     private Long id;
-    private String reference_id;
+    private Long reference_id;
     private String name;
     private String direccion;
     private String localidad;
@@ -14,4 +14,5 @@ public class EmpresaDTO {
     private String cp;
     private String provincia;
     private String email;
+    private String cuentas_bancarias;
 }

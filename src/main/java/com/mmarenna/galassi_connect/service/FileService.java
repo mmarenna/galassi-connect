@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional // Asegura que todas las operaciones manejen transacciones correctamente (necesario para LOBs en Postgres)
+@Transactional
 public class FileService {
     @Autowired
     private FileRepository fileRepository;
@@ -34,8 +34,8 @@ public class FileService {
     }
 
     @Transactional(readOnly = true)
-    public List<File> getByEmpresaIdAndType(Long empresaId, String type) {
-        List<File> files = fileRepository.findByEmpresaId(empresaId);
+    public List<File> getByEmpresaIdsAndType(List<Long> empresaIds, String type) {
+        List<File> files = fileRepository.findByEmpresaIdIn(empresaIds);
         if (type != null && !type.isEmpty()) {
             return files.stream()
                     .filter(f -> type.equals(f.getType()))
@@ -48,7 +48,6 @@ public class FileService {
         return fileRepository.save(file);
     }
 
-    // Nuevo método para guardar archivos binarios
     public File store(MultipartFile multipartFile, Long empresaId, String description, String type) throws IOException {
         File file = new File();
         file.setName(multipartFile.getOriginalFilename());

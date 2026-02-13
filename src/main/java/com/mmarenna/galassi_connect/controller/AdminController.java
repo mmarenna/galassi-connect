@@ -8,6 +8,8 @@ import com.mmarenna.galassi_connect.model.entity.Empresa;
 import com.mmarenna.galassi_connect.model.entity.File;
 import com.mmarenna.galassi_connect.model.entity.Usuario;
 import com.mmarenna.galassi_connect.model.entity.Vendedor;
+import com.mmarenna.galassi_connect.model.entity.Vinculacion;
+import com.mmarenna.galassi_connect.repository.VinculacionRepository;
 import com.mmarenna.galassi_connect.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,7 +20,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -36,6 +40,9 @@ public class AdminController {
 
     @Autowired
     private VendedorService vendedorService;
+    
+    @Autowired
+    private VinculacionRepository vinculacionRepository;
 
     // ==========================================
     // 1. GESTIÓN DE ARCHIVOS
@@ -79,7 +86,7 @@ public class AdminController {
 
     @PostMapping("/empresas")
     public ResponseEntity<EmpresaDTO> createEmpresa(@RequestBody EmpresaDTO dto) {
-        if (dto.getReference_id() == null || dto.getReference_id().isEmpty()) {
+        if (dto.getReference_id() == null) {
             return ResponseEntity.badRequest().build();
         }
         
@@ -127,7 +134,7 @@ public class AdminController {
             return ResponseEntity.notFound().build();
         }
 
-        if (vendedorDTO.getReference_id() == null || vendedorDTO.getReference_id().isEmpty()) {
+        if (vendedorDTO.getReference_id() == null) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -158,39 +165,74 @@ public class AdminController {
 
     @PostMapping("/usuarios")
     public ResponseEntity<UsuarioDTO> createUsuario(@RequestBody UsuarioDTO dto) {
-        if (dto.getReference_id() == null || dto.getReference_id().isEmpty()) {
+        if (dto.getReference_id() == null) {
             return ResponseEntity.badRequest().build();
         }
         
-        if (dto.getEmpresaId() != null) {
-            Empresa empresa = empresaService.getById(dto.getEmpresaId());
-            if (empresa == null) {
-                return ResponseEntity.badRequest().build();
-            }
-        }
-
         Usuario usuario = new Usuario();
         updateUsuarioFromDTO(usuario, dto);
 
         Usuario saved = usuarioService.save(usuario);
+        
+        // Guardar relaciones en Vinculacion
+        if (dto.getEmpresaIds() != null) {
+            for (Long empresaId : dto.getEmpresaIds()) {
+                Empresa emp = empresaService.getById(empresaId);
+                if (emp != null) {
+                    Vinculacion v = new Vinculacion();
+                    v.setUsuarioReferenceId(saved.getReference_id());
+                    v.setEmpresaReferenceId(emp.getReference_id());
+                    v.setVendedorReferenceId(0L); // Default por ahora
+                    vinculacionRepository.save(v);
+                }
+            }
+        }
+
         return ResponseEntity.ok(mapToUsuarioDTO(saved));
     }
 
     @PutMapping("/usuarios/{id}")
     public ResponseEntity<UsuarioDTO> updateUsuario(@PathVariable Long id, @RequestBody UsuarioDTO dto) {
         return usuarioService.findById(id).map(usuario -> {
+            // Borrar vinculaciones anteriores
+            // Nota: Esto borra todas las vinculaciones de este usuario por referencia
+            // Si el usuario cambia de reference_id, habría que manejarlo con cuidado.
+            // Asumimos que reference_id es estable o que borramos por el ref_id viejo antes de actualizar.
+            // Para simplificar: borramos por el ref_id actual del usuario antes de actualizarlo.
+            List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(usuario.getReference_id());
+            vinculacionRepository.deleteAll(vinculaciones);
+
             updateUsuarioFromDTO(usuario, dto);
-            
             Usuario updated = usuarioService.save(usuario);
+            
+            // Crear nuevas vinculaciones
+            if (dto.getEmpresaIds() != null) {
+                for (Long empresaId : dto.getEmpresaIds()) {
+                    Empresa emp = empresaService.getById(empresaId);
+                    if (emp != null) {
+                        Vinculacion v = new Vinculacion();
+                        v.setUsuarioReferenceId(updated.getReference_id());
+                        v.setEmpresaReferenceId(emp.getReference_id());
+                        v.setVendedorReferenceId(0L);
+                        vinculacionRepository.save(v);
+                    }
+                }
+            }
+            
             return ResponseEntity.ok(mapToUsuarioDTO(updated));
         }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/usuarios/{id}")
     public ResponseEntity<Void> deleteUsuario(@PathVariable Long id) {
-        if (usuarioService.findById(id).isEmpty()) {
+        Optional<Usuario> u = usuarioService.findById(id);
+        if (u.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        // Borrar vinculaciones
+        List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(u.get().getReference_id());
+        vinculacionRepository.deleteAll(vinculaciones);
+        
         usuarioService.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -212,7 +254,6 @@ public class AdminController {
     private void updateUsuarioFromDTO(Usuario entity, UsuarioDTO dto) {
         entity.setName(dto.getName());
         entity.setReference_id(dto.getReference_id());
-        entity.setEmpresaId(dto.getEmpresaId());
         entity.setEmail(dto.getEmail());
         entity.setDireccion(dto.getDireccion());
         entity.setLocalidad(dto.getLocalidad());
@@ -260,13 +301,22 @@ public class AdminController {
         dto.setId(entity.getId());
         dto.setName(entity.getName());
         dto.setReference_id(entity.getReference_id());
-        dto.setEmpresaId(entity.getEmpresaId());
         dto.setEmail(entity.getEmail());
         dto.setDireccion(entity.getDireccion());
         dto.setLocalidad(entity.getLocalidad());
         dto.setTelefono(entity.getTelefono());
         dto.setProvincia(entity.getProvincia());
         dto.setCuit(entity.getCuit());
+        
+        // Cargar IDs de empresas desde Vinculacion
+        List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(entity.getReference_id());
+        List<Long> empresaIds = new ArrayList<>();
+        for (Vinculacion v : vinculaciones) {
+            Optional<Empresa> emp = empresaService.getByReferenceId(v.getEmpresaReferenceId());
+            emp.ifPresent(value -> empresaIds.add(value.getId()));
+        }
+        dto.setEmpresaIds(empresaIds);
+
         return dto;
     }
 }

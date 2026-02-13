@@ -1,5 +1,6 @@
 package com.mmarenna.galassi_connect.model.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,7 +13,7 @@ public class Empresa {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String reference_id; // IDPROVGALASI
+    private Long reference_id; // IDPROVGALASI
     private String name;
     private String direccion;
     private String localidad;
@@ -21,4 +22,7 @@ public class Empresa {
     private String cp;
     private String provincia;
     private String email;
+    
+    @Column(length = 300)
+    private String cuentas_bancarias;
 }

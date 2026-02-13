@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class EmpresaService {
@@ -23,6 +24,10 @@ public class EmpresaService {
 
     public Empresa getById(Long id) {
         return empresaRepository.findById(id).orElse(null);
+    }
+    
+    public Optional<Empresa> getByReferenceId(Long refId) {
+        return empresaRepository.findByReference_id(refId); // Actualizado
     }
 
     public Empresa save(Empresa empresa) {

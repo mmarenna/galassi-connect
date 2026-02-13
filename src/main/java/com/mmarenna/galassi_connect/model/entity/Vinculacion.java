@@ -8,16 +8,12 @@ import lombok.Data;
 
 @Data
 @Entity
-public class Usuario {
+public class Vinculacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long reference_id; // IdCliente (Cambiado a Long)
-    private String name;
-    private String email;
-    private String direccion;
-    private String localidad;
-    private String telefono;
-    private String provincia;
-    private String cuit;
+    
+    private Long usuarioReferenceId; // IdCliente
+    private Long empresaReferenceId; // IDPROVGALASI
+    private Long vendedorReferenceId; // numvend
 }

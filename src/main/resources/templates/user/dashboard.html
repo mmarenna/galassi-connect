@@ -4,6 +4,20 @@
       layout:decorate="~{layout/base}">
 <head>
     <title>User Dashboard</title>
+    <style>
+        .empresa-badge {
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            display: inline-block;
+        }
+        .file-group-title {
+            border-left: 4px solid #0f4c81;
+            padding-left: 10px;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #0f4c81;
+        }
+    </style>
 </head>
 <body>
     <div layout:fragment="content">
@@ -16,33 +30,33 @@
             </div>
         </div>
 
-        <!-- Sección de Archivos -->
-        <div id="filesSection">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-folder2-open me-2"></i> Archivos Disponibles</span>
-                    <span class="badge bg-light text-success" id="empresaName">Cargando empresas...</span>
+        <div class="row">
+            <!-- Columna Izquierda: Información de Empresas -->
+            <div class="col-md-3 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0"><i class="bi bi-building"></i> Mis Empresas</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="empresasList" class="d-flex flex-column gap-2">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div> Cargando...
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Nombre del Archivo</th>
-                                    <th>Descripción</th>
-                                    <th>Tipo</th>
-                                    <th>Empresa ID</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="filesTableBody">
-                                <tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></td></tr>
-                            </tbody>
-                        </table>
+            </div>
+
+            <!-- Columna Derecha: Archivos -->
+            <div class="col-md-9">
+                <div id="filesContainer">
+                    <!-- Aquí se inyectarán las tablas por tipo -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 text-muted">Buscando archivos...</p>
                     </div>
-                    <div id="noFilesAlert" class="alert alert-info d-none mt-3">
-                        No hay archivos disponibles para tus empresas en este momento.
-                    </div>
+                </div>
+
+                <div id="noFilesAlert" class="alert alert-info d-none mt-3">
+                    No hay archivos disponibles para tus empresas en este momento.
                 </div>
             </div>
         </div>
@@ -51,6 +65,9 @@
         <input type="hidden" id="currentUserId" th:value="${usuario.id}">
 
         <script>
+            // Mapa para guardar ID -> Nombre de empresa
+            const empresasMap = new Map();
+
             document.addEventListener('DOMContentLoaded', function() {
                 loadUserData();
             });
@@ -58,38 +75,48 @@
             function loadUserData() {
                 const userId = document.getElementById('currentUserId').value;
 
-                // 1. Obtener datos de la empresa (solo para mostrar el nombre en el header de la card)
-                fetch(`/api/user/${userId}/empresa`)
+                // 1. Obtener datos de las empresas
+                fetch(`/api/user/${userId}/empresas`)
                     .then(response => {
-                        if (!response.ok) return null; // Puede no tener empresa asignada
+                        if (!response.ok) throw new Error('Error al cargar empresas');
                         return response.json();
                     })
-                    .then(empresa => {
-                        const empresaLabel = document.getElementById('empresaName');
-                        if (empresa) {
-                            empresaLabel.textContent = empresa.name;
+                    .then(empresas => {
+                        const lista = document.getElementById('empresasList');
+                        lista.innerHTML = ''; // Limpiar spinner
+
+                        if (empresas.length > 0) {
+                            empresas.forEach(e => {
+                                // Guardar en el mapa para usar después
+                                empresasMap.set(e.id, e.name);
+
+                                // Renderizar en la lista lateral
+                                const item = document.createElement('div');
+                                item.className = 'p-2 border rounded bg-white shadow-sm';
+                                item.innerHTML = `<small class="fw-bold text-secondary d-block">Ref: ${e.reference_id}</small> ${e.name}`;
+                                lista.appendChild(item);
+                            });
                         } else {
-                            empresaLabel.textContent = 'Sin Empresa Asignada';
-                            empresaLabel.className = 'badge bg-warning text-dark';
+                            lista.innerHTML = '<span class="text-muted fst-italic">Sin empresas asignadas</span>';
                         }
-                        // Cargamos los archivos independientemente
+
+                        // 2. Cargar archivos una vez que tenemos los nombres de las empresas
                         loadFiles(userId);
                     })
                     .catch(error => {
                         console.error(error);
-                        document.getElementById('empresaName').textContent = 'Error al cargar';
-                        loadFiles(userId);
+                        document.getElementById('empresasList').innerHTML = '<span class="text-danger">Error al cargar</span>';
                     });
             }
 
             function loadFiles(userId) {
-                const tableBody = document.getElementById('filesTableBody');
+                const container = document.getElementById('filesContainer');
                 const noFilesAlert = document.getElementById('noFilesAlert');
 
                 fetch(`/api/user/${userId}/files`)
                     .then(response => response.json())
                     .then(files => {
-                        tableBody.innerHTML = ''; // Limpiar spinner
+                        container.innerHTML = ''; // Limpiar spinner
 
                         if (files.length === 0) {
                             noFilesAlert.classList.remove('d-none');
@@ -98,25 +125,70 @@
 
                         noFilesAlert.classList.add('d-none');
 
+                        // Agrupar archivos por tipo
+                        const filesByType = {};
                         files.forEach(file => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td><i class="bi bi-file-earmark-text me-2 text-primary"></i>${file.name}</td>
-                                <td>${file.description || '-'}</td>
-                                <td><span class="badge bg-secondary">${file.type}</span></td>
-                                <td><small class="text-muted">#${file.empresaId}</small></td>
-                                <td>
-                                    <a href="/api/user/files/${file.id}/download" class="btn btn-sm btn-outline-primary" target="_blank">
-                                        <i class="bi bi-download"></i> Descargar
-                                    </a>
-                                </td>
-                            `;
-                            tableBody.appendChild(row);
+                            const type = file.type || 'Otros';
+                            if (!filesByType[type]) {
+                                filesByType[type] = [];
+                            }
+                            filesByType[type].push(file);
                         });
+
+                        // Renderizar una tabla por cada tipo
+                        for (const [type, typeFiles] of Object.entries(filesByType)) {
+                            // Título del grupo
+                            const title = document.createElement('h4');
+                            title.className = 'file-group-title';
+                            title.innerHTML = `<i class="bi bi-collection"></i> ${type}`;
+                            container.appendChild(title);
+
+                            // Card para la tabla
+                            const card = document.createElement('div');
+                            card.className = 'card shadow-sm mb-4';
+
+                            const tableResponsive = document.createElement('div');
+                            tableResponsive.className = 'table-responsive';
+
+                            const table = document.createElement('table');
+                            table.className = 'table table-hover align-middle mb-0';
+                            table.innerHTML = `
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 30%;">Nombre del Archivo</th>
+                                        <th style="width: 30%;">Descripción</th>
+                                        <th style="width: 25%;">Empresa</th>
+                                        <th style="width: 15%;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${typeFiles.map(file => `
+                                        <tr>
+                                            <td><i class="bi bi-file-earmark-text me-2 text-primary"></i>${file.name}</td>
+                                            <td>${file.description || '-'}</td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border">
+                                                    ${empresasMap.get(file.empresaId) || 'ID: ' + file.empresaId}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="/api/user/files/${file.id}/download" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                    <i class="bi bi-download"></i> Descargar
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            `;
+
+                            tableResponsive.appendChild(table);
+                            card.appendChild(tableResponsive);
+                            container.appendChild(card);
+                        }
                     })
                     .catch(error => {
                         console.error('Error cargando archivos:', error);
-                        tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error al cargar los archivos.</td></tr>';
+                        container.innerHTML = '<div class="alert alert-danger">Error al cargar los archivos.</div>';
                     });
             }
         </script>
