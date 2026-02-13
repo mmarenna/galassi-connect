@@ -16,28 +16,48 @@
             margin-top: 2rem;
             margin-bottom: 1rem;
             color: #0f4c81;
+            font-weight: 600;
+        }
+        .dashboard-title {
+            color: #0f4c81;
+            font-weight: 700;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+        .dashboard-title::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 4px;
+            background-color: #00a8cc;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
         }
     </style>
 </head>
 <body>
     <div layout:fragment="content">
-        <!-- Header con info del usuario -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>Panel de Usuario</h1>
-            <div class="text-end">
-                <h5 class="mb-0 text-primary" th:text="${usuario.name}">Nombre Usuario</h5>
-                <small class="text-muted" th:text="'Ref: ' + ${usuario.reference_id}">Ref: 123</small>
+
+        <!-- Header Centrado -->
+        <div class="text-center mb-5">
+            <h1 class="dashboard-title"><i class="bi bi-person-workspace me-2"></i>Panel de Usuario</h1>
+            <div class="mt-2">
+                <h5 class="text-primary fw-bold mb-0" th:text="${usuario.name}">Nombre Usuario</h5>
+                <span class="badge bg-light text-secondary border mt-1" th:text="'Ref: ' + ${usuario.reference_id}">Ref: 123</span>
             </div>
         </div>
 
         <div class="row">
             <!-- Columna Izquierda: Información de Empresas -->
             <div class="col-md-3 mb-4">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-light">
-                        <h6 class="mb-0"><i class="bi bi-building"></i> Mis Empresas</h6>
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-light border-bottom-0">
+                        <h6 class="mb-0 text-dark fw-bold"><i class="bi bi-building me-2"></i>Mis Empresas</h6>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body bg-white">
                         <div id="empresasList" class="d-flex flex-column gap-2">
                             <div class="spinner-border spinner-border-sm text-primary" role="status"></div> Cargando...
                         </div>
@@ -55,8 +75,8 @@
                     </div>
                 </div>
 
-                <div id="noFilesAlert" class="alert alert-info d-none mt-3">
-                    No hay archivos disponibles para tus empresas en este momento.
+                <div id="noFilesAlert" class="alert alert-info d-none mt-3 shadow-sm border-0">
+                    <i class="bi bi-info-circle me-2"></i> No hay archivos disponibles para tus empresas en este momento.
                 </div>
             </div>
         </div>
@@ -92,12 +112,15 @@
 
                                 // Renderizar en la lista lateral
                                 const item = document.createElement('div');
-                                item.className = 'p-2 border rounded bg-white shadow-sm';
-                                item.innerHTML = `<small class="fw-bold text-secondary d-block">Ref: ${e.reference_id}</small> ${e.name}`;
+                                item.className = 'p-3 border rounded bg-light shadow-sm mb-2';
+                                item.innerHTML = `
+                                    <div class="fw-bold text-primary">${e.name}</div>
+                                    <small class="text-muted d-block">Ref: ${e.reference_id}</small>
+                                `;
                                 lista.appendChild(item);
                             });
                         } else {
-                            lista.innerHTML = '<span class="text-muted fst-italic">Sin empresas asignadas</span>';
+                            lista.innerHTML = '<div class="text-center text-muted py-3"><i class="bi bi-building-slash fs-4 d-block mb-2"></i>Sin empresas asignadas</div>';
                         }
 
                         // 2. Cargar archivos una vez que tenemos los nombres de las empresas
@@ -140,12 +163,12 @@
                             // Título del grupo
                             const title = document.createElement('h4');
                             title.className = 'file-group-title';
-                            title.innerHTML = `<i class="bi bi-collection"></i> ${type}`;
+                            title.innerHTML = `<i class="bi bi-folder2-open me-2"></i> ${type}`;
                             container.appendChild(title);
 
                             // Card para la tabla
                             const card = document.createElement('div');
-                            card.className = 'card shadow-sm mb-4';
+                            card.className = 'card shadow-sm mb-4 border-0';
 
                             const tableResponsive = document.createElement('div');
                             tableResponsive.className = 'table-responsive';
@@ -167,7 +190,7 @@
                                             <td><i class="bi bi-file-earmark-text me-2 text-primary"></i>${file.name}</td>
                                             <td>${file.description || '-'}</td>
                                             <td>
-                                                <span class="badge bg-light text-dark border">
+                                                <span class="badge bg-white text-dark border shadow-sm">
                                                     ${empresasMap.get(file.empresaId) || 'ID: ' + file.empresaId}
                                                 </span>
                                             </td>

@@ -68,6 +68,23 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/empresas/{empresaId}/files")
+    public ResponseEntity<List<FileDTO>> getFilesByEmpresa(@PathVariable Long empresaId) {
+        List<File> files = fileService.getByEmpresaId(empresaId);
+        List<FileDTO> dtos = files.stream().map(this::mapToFileDTO).collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    @DeleteMapping("/files/{fileId}")
+    public ResponseEntity<Void> deleteFile(@PathVariable Long fileId) {
+        Optional<File> file = fileService.findById(fileId);
+        if (file.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        fileService.delete(fileId);
+        return ResponseEntity.noContent().build();
+    }
+
     // ==========================================
     // 2. GESTIÓN DE EMPRESAS
     // ==========================================
@@ -194,18 +211,12 @@ public class AdminController {
     @PutMapping("/usuarios/{id}")
     public ResponseEntity<UsuarioDTO> updateUsuario(@PathVariable Long id, @RequestBody UsuarioDTO dto) {
         return usuarioService.findById(id).map(usuario -> {
-            // Borrar vinculaciones anteriores
-            // Nota: Esto borra todas las vinculaciones de este usuario por referencia
-            // Si el usuario cambia de reference_id, habría que manejarlo con cuidado.
-            // Asumimos que reference_id es estable o que borramos por el ref_id viejo antes de actualizar.
-            // Para simplificar: borramos por el ref_id actual del usuario antes de actualizarlo.
             List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(usuario.getReference_id());
             vinculacionRepository.deleteAll(vinculaciones);
 
             updateUsuarioFromDTO(usuario, dto);
             Usuario updated = usuarioService.save(usuario);
             
-            // Crear nuevas vinculaciones
             if (dto.getEmpresaIds() != null) {
                 for (Long empresaId : dto.getEmpresaIds()) {
                     Empresa emp = empresaService.getById(empresaId);
@@ -229,7 +240,6 @@ public class AdminController {
         if (u.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        // Borrar vinculaciones
         List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(u.get().getReference_id());
         vinculacionRepository.deleteAll(vinculaciones);
         
@@ -249,6 +259,7 @@ public class AdminController {
         entity.setCp(dto.getCp());
         entity.setProvincia(dto.getProvincia());
         entity.setEmail(dto.getEmail());
+        entity.setCuentas_bancarias(dto.getCuentas_bancarias());
     }
 
     private void updateUsuarioFromDTO(Usuario entity, UsuarioDTO dto) {
@@ -284,6 +295,7 @@ public class AdminController {
         dto.setCp(entity.getCp());
         dto.setProvincia(entity.getProvincia());
         dto.setEmail(entity.getEmail());
+        dto.setCuentas_bancarias(entity.getCuentas_bancarias());
         return dto;
     }
 
@@ -308,7 +320,6 @@ public class AdminController {
         dto.setProvincia(entity.getProvincia());
         dto.setCuit(entity.getCuit());
         
-        // Cargar IDs de empresas desde Vinculacion
         List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(entity.getReference_id());
         List<Long> empresaIds = new ArrayList<>();
         for (Vinculacion v : vinculaciones) {

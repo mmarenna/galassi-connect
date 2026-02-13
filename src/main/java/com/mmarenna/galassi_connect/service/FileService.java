@@ -56,7 +56,11 @@ public class FileService {
         file.setEmpresaId(empresaId);
         file.setDescription(description);
         file.setType(type);
-
+        
         return fileRepository.save(file);
+    }
+
+    public void delete(Long id) {
+        fileRepository.deleteById(id);
     }
 }

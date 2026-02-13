@@ -1,19 +1,20 @@
-/* Galassi Connect - Corporate Theme */
+/* Galassi Connect - Corporate Theme Refined */
 
 :root {
     --primary-color: #0f4c81; /* Classic Blue */
+    --primary-dark: #0a365e;
     --secondary-color: #6c757d;
     --accent-color: #00a8cc;
-    --bg-color: #f4f6f9;
+    --bg-color: #f0f2f5; /* Gris azulado muy suave */
     --text-color: #333333;
-    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     --header-height: 70px;
 }
 
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
-    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -22,25 +23,34 @@ body {
 /* --- Navbar --- */
 .navbar {
     background-color: #ffffff !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05); /* Sombra más suave y difusa */
     height: var(--header-height);
     padding: 0;
+    border-bottom: none !important; /* Quitamos el borde duro, la sombra basta */
 }
 
 .navbar-brand img {
-    height: 45px;
+    height: 55px;
     width: auto;
+    transition: transform 0.3s ease;
 }
 
-.nav-link {
-    color: var(--primary-color) !important;
+.navbar-brand:hover img {
+    transform: scale(1.02);
+}
+
+/* Botón Login en Header */
+.navbar .btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
     font-weight: 600;
-    padding: 0.5rem 1rem;
-    transition: color 0.2s;
 }
 
-.nav-link:hover {
-    color: var(--accent-color) !important;
+.navbar .btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: #ffffff !important; /* Texto blanco al hacer hover */
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 10px rgba(15, 76, 129, 0.3);
 }
 
 /* --- Cards --- */
@@ -48,22 +58,43 @@ body {
     border: none;
     border-radius: 12px;
     box-shadow: var(--card-shadow);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     background-color: #fff;
     overflow: hidden;
 }
 
 .card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
 }
 
+/* Headers de Cards con más personalidad */
 .card-header {
     background-color: #fff;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #f0f0f0;
     font-weight: 700;
-    color: var(--primary-color);
-    padding: 1rem 1.5rem;
+    color: var(--primary-dark);
+    padding: 1.25rem 1.5rem;
+    letter-spacing: -0.01em;
+}
+
+/* Variantes de Card Header */
+.card-header.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+    color: #fff !important;
+    border-bottom: none;
+}
+
+.card-header.bg-info {
+    background: linear-gradient(135deg, #17a2b8, #0f7f96) !important;
+    color: #fff !important;
+    border-bottom: none;
+}
+
+.card-header.bg-success {
+    background: linear-gradient(135deg, #198754, #146c43) !important;
+    color: #fff !important;
+    border-bottom: none;
 }
 
 .card-body {
@@ -71,57 +102,76 @@ body {
 }
 
 /* --- Buttons --- */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.5rem 1.25rem;
+    transition: all 0.2s;
+}
+
 .btn-primary {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
 }
 
 .btn-primary:hover {
-    background-color: #0a365e;
-    border-color: #0a365e;
-}
-
-.btn-outline-primary {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.btn-outline-primary:hover {
-    background-color: var(--primary-color);
-    color: #fff;
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    transform: translateY(-1px);
 }
 
 /* --- Footer --- */
 .footer {
     background-color: #fff !important;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #eaeaea;
     margin-top: auto;
-    padding: 1.5rem 0;
-    color: #888;
+    padding: 2rem 0;
+    color: #6c757d;
     font-size: 0.9rem;
 }
 
 /* --- Drop Zone (Admin) --- */
 .drop-zone {
     border: 2px dashed #cbd5e0;
-    border-radius: 8px;
+    border-radius: 10px;
     background-color: #f8fafc;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
 }
 
 .drop-zone:hover, .drop-zone--over {
     border-color: var(--primary-color);
-    background-color: #edf2f7;
+    background-color: #eef2f6;
 }
 
 /* --- Tables --- */
+.table {
+    margin-bottom: 0;
+}
+
 .table thead th {
-    background-color: #f1f5f9;
-    color: #475569;
+    background-color: #f8f9fa;
+    color: #495057;
     font-weight: 600;
-    border-bottom: 2px solid #e2e8f0;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+    border-bottom: 2px solid #e9ecef;
+    padding: 1rem;
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    color: #555;
 }
 
 .table-hover tbody tr:hover {
-    background-color: #f8fafc;
+    background-color: #f1f4f8;
+}
+
+/* --- Badges --- */
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.8em;
+    border-radius: 6px;
 }

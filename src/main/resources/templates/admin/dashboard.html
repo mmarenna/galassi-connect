@@ -52,25 +52,49 @@
             font-size: 14px;
             text-align: center;
         }
+
+        .dashboard-title {
+            color: #0f4c81;
+            font-weight: 700;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        .dashboard-title::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 4px;
+            background-color: #00a8cc;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body>
     <div layout:fragment="content">
-        <h1 class="mb-4">Panel de Administración</h1>
+
+        <div class="text-center mb-5">
+            <h1 class="dashboard-title"><i class="bi bi-shield-lock me-2"></i>Panel de Administración</h1>
+            <p class="text-muted mt-2">Gestión centralizada de la plataforma</p>
+        </div>
 
         <!-- Fila 1: Gestión (Carga, Empresas, Usuarios) -->
         <div class="row mb-4">
             <!-- Tarjeta de Carga de Archivos -->
             <div class="col-md-4 mb-4">
-                <div class="card h-100 border-primary">
+                <div class="card h-100 border-primary shadow-sm">
                     <div class="card-header bg-primary text-white">
                         <i class="bi bi-cloud-upload"></i> Gestión de Archivos
                     </div>
                     <div class="card-body text-center">
                         <h5 class="card-title">Cargar Nuevo Archivo</h5>
-                        <p class="card-text small">Subir archivos PDF, Excel, etc. y asignarlos a una empresa.</p>
+                        <p class="card-text small text-muted">Subir archivos PDF, Excel, etc. y asignarlos a una empresa.</p>
                         <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                            Cargar Archivo
+                            <i class="bi bi-upload me-1"></i> Cargar Archivo
                         </button>
                     </div>
                 </div>
@@ -78,10 +102,11 @@
 
             <!-- Tarjeta de Gestión de Empresas -->
             <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3 text-primary"><i class="bi bi-building fs-1"></i></div>
                         <h5 class="card-title">Empresas</h5>
-                        <p class="card-text small">Crear y administrar empresas.</p>
+                        <p class="card-text small text-muted">Crear y administrar empresas asociadas.</p>
                         <div class="d-grid gap-2">
                             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createEmpresaModal">
                                 <i class="bi bi-plus-circle"></i> Crear
@@ -96,10 +121,11 @@
 
             <!-- Tarjeta de Gestión de Usuarios -->
             <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3 text-primary"><i class="bi bi-people fs-1"></i></div>
                         <h5 class="card-title">Usuarios</h5>
-                        <p class="card-text small">Administrar usuarios y accesos.</p>
+                        <p class="card-text small text-muted">Administrar usuarios y accesos.</p>
                         <div class="d-grid gap-2">
                             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createUsuarioModal">
                                 <i class="bi bi-person-plus"></i> Crear
@@ -115,14 +141,15 @@
 
         <!-- Fila 2: Auditoría -->
         <div class="row mb-5 justify-content-center">
-            <div class="col-md-6">
-                <div class="card h-100 border-info">
+            <!-- Auditoría de Usuarios -->
+            <div class="col-md-5 mb-4">
+                <div class="card h-100 border-info shadow-sm">
                     <div class="card-header bg-info text-white">
                         <i class="bi bi-search"></i> Auditoría de Usuarios
                     </div>
-                    <div class="card-body">
+                    <div class="card-body text-center">
                         <h5 class="card-title">Ver Archivos de Usuario</h5>
-                        <p class="card-text small">Inspeccionar qué archivos ve un cliente específico.</p>
+                        <p class="card-text small text-muted">Inspeccionar qué archivos ve un cliente específico.</p>
                         <div class="input-group">
                             <select class="form-select" id="auditUserSelect">
                                 <option value="" selected disabled>Seleccione un Usuario...</option>
@@ -131,7 +158,31 @@
                                 </th:block>
                             </select>
                             <button class="btn btn-info text-white" type="button" onclick="viewUserFiles()">
-                                <i class="bi bi-eye"></i> Ver Archivos
+                                <i class="bi bi-eye"></i> Ver
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auditoría de Empresas -->
+            <div class="col-md-5 mb-4">
+                <div class="card h-100 border-warning shadow-sm">
+                    <div class="card-header bg-warning text-dark">
+                        <i class="bi bi-building-check"></i> Auditoría de Empresas
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Ver Archivos de Empresa</h5>
+                        <p class="card-text small text-muted">Listar y eliminar archivos asignados a una empresa.</p>
+                        <div class="input-group">
+                            <select class="form-select" id="auditEmpresaSelect">
+                                <option value="" selected disabled>Seleccione una Empresa...</option>
+                                <th:block th:each="empresa : ${empresas}">
+                                    <option th:value="${empresa.id}" th:text="${empresa.name} + ' (Ref: ' + ${empresa.reference_id} + ')'"></option>
+                                </th:block>
+                            </select>
+                            <button class="btn btn-warning" type="button" onclick="viewEmpresaFiles()">
+                                <i class="bi bi-eye"></i> Ver
                             </button>
                         </div>
                     </div>
@@ -140,16 +191,16 @@
         </div>
 
         <!-- SECCIÓN DE TABLAS (PAGINADAS) -->
-        <div id="dataSection" class="card shadow-sm d-none mb-5">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0" id="sectionTitle">Listado</h5>
+        <div id="dataSection" class="card shadow d-none mb-5">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0 text-primary fw-bold" id="sectionTitle">Listado</h5>
                 <button class="btn btn-sm btn-close" onclick="hideSection()"></button>
             </div>
             <div class="card-body">
                 <!-- Tabla Empresas -->
                 <div id="empresasTableContainer" class="d-none">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
                                     <th>ID</th>
@@ -163,7 +214,7 @@
                             <tbody id="empresasTableBody"></tbody>
                         </table>
                     </div>
-                    <nav aria-label="Page navigation">
+                    <nav aria-label="Page navigation" class="mt-3">
                         <ul class="pagination justify-content-center" id="empresasPagination"></ul>
                     </nav>
                 </div>
@@ -171,7 +222,7 @@
                 <!-- Tabla Usuarios -->
                 <div id="usuariosTableContainer" class="d-none">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
                                     <th>ID</th>
@@ -185,7 +236,7 @@
                             <tbody id="usuariosTableBody"></tbody>
                         </table>
                     </div>
-                    <nav aria-label="Page navigation">
+                    <nav aria-label="Page navigation" class="mt-3">
                         <ul class="pagination justify-content-center" id="usuariosPagination"></ul>
                     </nav>
                 </div>
@@ -194,7 +245,7 @@
 
         <!-- ================= MODALES ================= -->
 
-        <!-- Modal Auditoría de Archivos -->
+        <!-- Modal Auditoría de Archivos Usuario -->
         <div class="modal fade" id="auditFilesModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -204,7 +255,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="table-responsive">
-                            <table class="table table-striped">
+                            <table class="table table-striped align-middle">
                                 <thead>
                                     <tr>
                                         <th>Archivo</th>
@@ -223,40 +274,69 @@
             </div>
         </div>
 
+        <!-- Modal Auditoría de Archivos Empresa -->
+        <div class="modal fade" id="auditEmpresaFilesModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title">Archivos de la Empresa</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Archivo</th>
+                                        <th>Descripción</th>
+                                        <th>Tipo</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="auditEmpresaFilesTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="auditEmpresaNoFilesAlert" class="alert alert-warning d-none">Esta empresa no tiene archivos cargados.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal Carga de Archivos -->
         <div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title">Cargar Archivo a Empresa</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <form id="uploadForm">
                             <div class="mb-3">
-                                <label for="empresaSelect" class="form-label">Empresa</label>
+                                <label for="empresaSelect" class="form-label fw-bold">Empresa</label>
                                 <select class="form-select" id="empresaSelect" required>
                                     <option value="" selected disabled>Seleccione una empresa...</option>
                                     <th:block th:each="empresa : ${empresas}">
-                                        <!-- AQUI ESTA EL CAMBIO: Agregado (Ref: ...) -->
                                         <option th:value="${empresa.id}" th:text="${empresa.name} + ' (Ref: ' + ${empresa.reference_id} + ')'"></option>
                                     </th:block>
                                 </select>
                             </div>
-                            <div class="mb-3">
-                                <label for="fileDescription" class="form-label">Descripción</label>
-                                <input type="text" class="form-control" id="fileDescription" required>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="fileDescription" class="form-label fw-bold">Descripción</label>
+                                    <input type="text" class="form-control" id="fileDescription" required placeholder="Ej: Factura Enero">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="fileType" class="form-label fw-bold">Tipo de Documento</label>
+                                    <select class="form-select" id="fileType" required>
+                                        <option value="Lista de Precios">Lista de Precios</option>
+                                        <option value="Paletizado">Paletizado</option>
+                                        <option value="Catalogo">Catalogo</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="mb-3">
-                                <label for="fileType" class="form-label">Tipo de Documento</label>
-                                <select class="form-select" id="fileType" required>
-                                    <option value="Lista de Precios">Lista de Precios</option>
-                                    <option value="Paletizado">Paletizado</option>
-                                    <option value="Catalogo">Catalogo</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Archivo</label>
+                                <label class="form-label fw-bold">Archivo</label>
                                 <div class="drop-zone">
                                     <span class="drop-zone__prompt">Arrastra el archivo aquí o haz clic para subir</span>
                                     <input type="file" name="file" class="drop-zone__input" id="fileInput" required>
@@ -266,7 +346,7 @@
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="button" class="btn btn-primary" onclick="uploadFile()">Subir Archivo</button>
                     </div>
                 </div>
@@ -277,32 +357,35 @@
         <div class="modal fade" id="createEmpresaModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-header bg-success text-white">
                         <h5 class="modal-title">Nueva Empresa</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <form id="createEmpresaForm">
                             <div class="mb-3">
-                                <label class="form-label">Nombre</label>
+                                <label class="form-label fw-bold">Nombre</label>
                                 <input type="text" class="form-control" id="empresaName" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Reference ID (IDPROVGALASI)</label>
+                                <label class="form-label fw-bold">Reference ID (IDPROVGALASI)</label>
                                 <input type="text" class="form-control" id="empresaRefId" required>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">CUIT</label>
-                                <input type="text" class="form-control" id="empresaCuit">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-control" id="empresaEmail">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">CUIT</label>
+                                    <input type="text" class="form-control" id="empresaCuit">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Email</label>
+                                    <input type="email" class="form-control" id="empresaEmail">
+                                </div>
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" onclick="createEmpresa()">Guardar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-success" onclick="createEmpresa()">Guardar</button>
                     </div>
                 </div>
             </div>
@@ -312,26 +395,28 @@
         <div class="modal fade" id="createUsuarioModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-header bg-success text-white">
                         <h5 class="modal-title">Nuevo Usuario</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <form id="createUsuarioForm">
                             <div class="mb-3">
-                                <label class="form-label">Nombre</label>
+                                <label class="form-label fw-bold">Nombre</label>
                                 <input type="text" class="form-control" id="usuarioName" required>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Reference ID (IdCliente)</label>
-                                <input type="text" class="form-control" id="usuarioRefId" required>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Reference ID (IdCliente)</label>
+                                    <input type="text" class="form-control" id="usuarioRefId" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Email</label>
+                                    <input type="email" class="form-control" id="usuarioEmail">
+                                </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-control" id="usuarioEmail">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Empresas Asignadas</label>
+                                <label class="form-label fw-bold">Empresas Asignadas</label>
                                 <select class="form-select" id="usuarioEmpresaSelect" multiple required style="height: 150px;">
                                     <th:block th:each="empresa : ${empresas}">
                                         <option th:value="${empresa.id}" th:text="${empresa.name}"></option>
@@ -342,7 +427,8 @@
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" onclick="createUsuario()">Guardar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-success" onclick="createUsuario()">Guardar</button>
                     </div>
                 </div>
             </div>
@@ -381,7 +467,7 @@
             function viewUserFiles() {
                 const userId = document.getElementById('auditUserSelect').value;
                 if (!userId) {
-                    alert('Seleccione un usuario primero');
+                    Swal.fire('Atención', 'Seleccione un usuario primero', 'warning');
                     return;
                 }
 
@@ -414,6 +500,68 @@
                         }
                         new bootstrap.Modal(document.getElementById('auditFilesModal')).show();
                     });
+            }
+
+            // --- Auditoría de Archivos Empresa (NUEVO) ---
+            function viewEmpresaFiles() {
+                const empresaId = document.getElementById('auditEmpresaSelect').value;
+                if (!empresaId) {
+                    Swal.fire('Atención', 'Seleccione una empresa primero', 'warning');
+                    return;
+                }
+
+                fetch(`/api/admin/empresas/${empresaId}/files`)
+                    .then(res => res.json())
+                    .then(files => {
+                        const tbody = document.getElementById('auditEmpresaFilesTableBody');
+                        tbody.innerHTML = '';
+                        const alertBox = document.getElementById('auditEmpresaNoFilesAlert');
+
+                        if (files.length === 0) {
+                            alertBox.classList.remove('d-none');
+                        } else {
+                            alertBox.classList.add('d-none');
+                            files.forEach(f => {
+                                tbody.innerHTML += `
+                                    <tr>
+                                        <td>${f.name}</td>
+                                        <td>${f.description || '-'}</td>
+                                        <td><span class="badge bg-secondary">${f.type}</span></td>
+                                        <td>
+                                            <a href="/api/user/files/${f.id}/download" class="btn btn-sm btn-outline-primary me-1" target="_blank" title="Descargar">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteFile(${f.id}, ${empresaId})" title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        }
+                        new bootstrap.Modal(document.getElementById('auditEmpresaFilesModal')).show();
+                    });
+            }
+
+            function deleteFile(fileId, empresaId) {
+                Swal.fire({
+                    title: '¿Eliminar archivo?',
+                    text: "Esta acción no se puede deshacer",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Sí, eliminar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/api/admin/files/${fileId}`, { method: 'DELETE' })
+                            .then(res => {
+                                if(res.ok) {
+                                    Swal.fire('Eliminado', 'Archivo eliminado', 'success');
+                                    viewEmpresaFiles();
+                                } else Swal.fire('Error', 'No se pudo eliminar', 'error');
+                            });
+                    }
+                })
             }
 
             // --- Carga de Empresas (Paginada) ---
@@ -506,25 +654,36 @@
                     body: JSON.stringify(data)
                 }).then(res => {
                     if(res.ok) {
-                        alert('Empresa creada');
+                        Swal.fire('Éxito', 'Empresa creada correctamente', 'success');
                         bootstrap.Modal.getInstance(document.getElementById('createEmpresaModal')).hide();
                         if(!document.getElementById('empresasTableContainer').classList.contains('d-none')) {
                             loadEmpresas(currentEmpresasPage);
                         }
                         location.reload();
-                    } else alert('Error al crear empresa');
+                    } else Swal.fire('Error', 'No se pudo crear la empresa', 'error');
                 });
             }
 
             function deleteEmpresa(id) {
-                if(confirm('¿Seguro que deseas eliminar esta empresa?')) {
-                    fetch(`/api/admin/empresas/${id}`, { method: 'DELETE' })
-                        .then(res => {
-                            if(res.ok) {
-                                loadEmpresas(currentEmpresasPage);
-                            } else alert('Error al eliminar');
-                        });
-                }
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "No podrás revertir esto",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/api/admin/empresas/${id}`, { method: 'DELETE' })
+                            .then(res => {
+                                if(res.ok) {
+                                    Swal.fire('Eliminado', 'La empresa ha sido eliminada.', 'success');
+                                    loadEmpresas(currentEmpresasPage);
+                                } else Swal.fire('Error', 'No se pudo eliminar', 'error');
+                            });
+                    }
+                })
             }
 
             function createUsuario() {
@@ -543,24 +702,35 @@
                     body: JSON.stringify(data)
                 }).then(res => {
                     if(res.ok) {
-                        alert('Usuario creado');
+                        Swal.fire('Éxito', 'Usuario creado correctamente', 'success');
                         bootstrap.Modal.getInstance(document.getElementById('createUsuarioModal')).hide();
                         if(!document.getElementById('usuariosTableContainer').classList.contains('d-none')) {
                             loadUsuarios(currentUsuariosPage);
                         }
-                    } else alert('Error al crear usuario');
+                    } else Swal.fire('Error', 'No se pudo crear el usuario', 'error');
                 });
             }
 
             function deleteUsuario(id) {
-                if(confirm('¿Seguro que deseas eliminar este usuario?')) {
-                    fetch(`/api/admin/usuarios/${id}`, { method: 'DELETE' })
-                        .then(res => {
-                            if(res.ok) {
-                                loadUsuarios(currentUsuariosPage);
-                            } else alert('Error al eliminar');
-                        });
-                }
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "No podrás revertir esto",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/api/admin/usuarios/${id}`, { method: 'DELETE' })
+                            .then(res => {
+                                if(res.ok) {
+                                    Swal.fire('Eliminado', 'El usuario ha sido eliminado.', 'success');
+                                    loadUsuarios(currentUsuariosPage);
+                                } else Swal.fire('Error', 'No se pudo eliminar', 'error');
+                            });
+                    }
+                })
             }
 
             // --- Drag & Drop y Upload ---
@@ -571,7 +741,8 @@
                 const fileInput = document.getElementById('fileInput');
 
                 if (!empresaId || !description || !type || fileInput.files.length === 0) {
-                    alert('Completa todos los campos'); return;
+                    Swal.fire('Atención', 'Por favor completa todos los campos', 'warning');
+                    return;
                 }
                 const formData = new FormData();
                 formData.append('file', fileInput.files[0]);
@@ -581,9 +752,9 @@
                 fetch(`/api/admin/empresas/${empresaId}/files`, { method: 'POST', body: formData })
                 .then(res => {
                     if (res.ok) {
-                        alert('Archivo subido');
+                        Swal.fire('Éxito', 'Archivo subido correctamente', 'success');
                         bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
-                    } else alert('Error al subir');
+                    } else Swal.fire('Error', 'No se pudo subir el archivo', 'error');
                 });
             }
 
