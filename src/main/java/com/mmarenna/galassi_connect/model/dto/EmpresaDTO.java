@@ -15,4 +15,6 @@ public class EmpresaDTO {
     private String provincia;
     private String email;
     private String cuentas_bancarias;
+    private String image_name;
+    private boolean hasFiles; // Calculado en tiempo de ejecución
 }

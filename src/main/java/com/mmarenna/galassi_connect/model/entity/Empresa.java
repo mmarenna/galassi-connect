@@ -25,4 +25,6 @@ public class Empresa {
     
     @Column(length = 300)
     private String cuentas_bancarias;
+
+    private String image_name; // Nuevo campo para el logo
 }

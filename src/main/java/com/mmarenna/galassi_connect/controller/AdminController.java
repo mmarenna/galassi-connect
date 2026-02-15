@@ -1,7 +1,16 @@
 package com.mmarenna.galassi_connect.controller;
 
-import com.mmarenna.galassi_connect.model.dto.*;
-import com.mmarenna.galassi_connect.model.entity.*;
+import com.mmarenna.galassi_connect.model.dto.EmpresaDTO;
+import com.mmarenna.galassi_connect.model.dto.FileDTO;
+import com.mmarenna.galassi_connect.model.dto.UsuarioDTO;
+import com.mmarenna.galassi_connect.model.dto.VendedorDTO;
+import com.mmarenna.galassi_connect.model.dto.CredencialDTO;
+import com.mmarenna.galassi_connect.model.entity.Empresa;
+import com.mmarenna.galassi_connect.model.entity.File;
+import com.mmarenna.galassi_connect.model.entity.Usuario;
+import com.mmarenna.galassi_connect.model.entity.Vendedor;
+import com.mmarenna.galassi_connect.model.entity.Vinculacion;
+import com.mmarenna.galassi_connect.model.entity.Credencial;
 import com.mmarenna.galassi_connect.repository.CredencialRepository;
 import com.mmarenna.galassi_connect.repository.VinculacionRepository;
 import com.mmarenna.galassi_connect.service.*;
@@ -243,15 +252,11 @@ public class AdminController {
         }
         List<Vinculacion> vinculaciones = vinculacionRepository.findByUsuarioReferenceId(u.get().getReference_id());
         vinculacionRepository.deleteAll(vinculaciones);
-        
-        // También borrar credenciales si existen
         credencialRepository.findByUsuarioId(id).ifPresent(credencialRepository::delete);
-        
         usuarioService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    // --- NUEVO: Auditoría de Archivos de Usuario ---
     @GetMapping("/usuarios/{userId}/files")
     public ResponseEntity<List<FileDTO>> getUserFilesForAdmin(@PathVariable Long userId) {
         Optional<Usuario> usuarioOpt = usuarioService.findById(userId);
@@ -278,7 +283,6 @@ public class AdminController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    // --- NUEVO: Gestión de Credenciales ---
     @GetMapping("/usuarios/{userId}/credenciales")
     public ResponseEntity<CredencialDTO> getCredencial(@PathVariable Long userId) {
         Optional<Credencial> cred = credencialRepository.findByUsuarioId(userId);
@@ -307,7 +311,7 @@ public class AdminController {
         credencialRepository.save(credencial);
         
         dto.setHasAccess(true);
-        dto.setPassword(null); // No devolver el password
+        dto.setPassword(null);
         return ResponseEntity.ok(dto);
     }
 
@@ -324,6 +328,7 @@ public class AdminController {
         entity.setProvincia(dto.getProvincia());
         entity.setEmail(dto.getEmail());
         entity.setCuentas_bancarias(dto.getCuentas_bancarias());
+        entity.setImage_name(dto.getImage_name()); // Nuevo campo
     }
 
     private void updateUsuarioFromDTO(Usuario entity, UsuarioDTO dto) {
@@ -360,6 +365,7 @@ public class AdminController {
         dto.setProvincia(entity.getProvincia());
         dto.setEmail(entity.getEmail());
         dto.setCuentas_bancarias(entity.getCuentas_bancarias());
+        dto.setImage_name(entity.getImage_name()); // Nuevo campo
         return dto;
     }
 

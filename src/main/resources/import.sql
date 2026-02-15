@@ -6160,3 +6160,24 @@ INSERT INTO vinculacion (usuario_reference_id, empresa_reference_id, vendedor_re
 INSERT INTO vinculacion (usuario_reference_id, empresa_reference_id, vendedor_reference_id) VALUES (953, 39, 5);
 INSERT INTO vinculacion (usuario_reference_id, empresa_reference_id, vendedor_reference_id) VALUES (955, 139, 5);
 INSERT INTO vinculacion (usuario_reference_id, empresa_reference_id, vendedor_reference_id) VALUES (955, 145, 5);
+
+
+-- ==========================================
+-- ASIGNACIÓN DE IMÁGENES A EMPRESAS
+-- ==========================================
+UPDATE empresa SET image_name = 'logo_tanto_25.png' WHERE reference_id = 25;
+UPDATE empresa SET image_name = 'logo_molanes_9.png' WHERE reference_id = 9;
+UPDATE empresa SET image_name = 'logo_risbio_190.png' WHERE reference_id = 190;
+UPDATE empresa SET image_name = 'logo_grimaldi_22.png' WHERE reference_id = 22;
+UPDATE empresa SET image_name = 'logo_paulista_13.png' WHERE reference_id = 13;
+UPDATE empresa SET image_name = 'logo_plenario_14.png' WHERE reference_id = 14;
+UPDATE empresa SET image_name = 'logo_urquiza_181.png' WHERE reference_id = 181;
+UPDATE empresa SET image_name = 'logo_jose_guma_15.png' WHERE reference_id = 15;
+UPDATE empresa SET image_name = 'logo_urquiza_r_182.png' WHERE reference_id = 182;
+UPDATE empresa SET image_name = 'logo_los_huarpes_8.webp' WHERE reference_id = 8;
+UPDATE empresa SET image_name = 'logo_carmen_suain_154.png' WHERE reference_id = 154;
+UPDATE empresa SET image_name = 'logo_fantoche_dielo_3.png' WHERE reference_id = 3;
+UPDATE empresa SET image_name = 'logo_cloro_mendoza_153.png' WHERE reference_id = 153;
+UPDATE empresa SET image_name = 'logo_santiago_saenz_23.png' WHERE reference_id = 23;
+UPDATE empresa SET image_name = 'logo_fantoche_juancito_23.png' WHERE reference_id = 21; -- Asumiendo que Juancito es ID 21
+UPDATE empresa SET image_name = 'logo_complejo_alimenticio_san_salvador_116.png' WHERE reference_id = 116;

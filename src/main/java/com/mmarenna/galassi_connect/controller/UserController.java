@@ -8,6 +8,7 @@ import com.mmarenna.galassi_connect.model.entity.File;
 import com.mmarenna.galassi_connect.model.entity.Usuario;
 import com.mmarenna.galassi_connect.model.entity.Vinculacion;
 import com.mmarenna.galassi_connect.repository.CredencialRepository;
+import com.mmarenna.galassi_connect.repository.FileRepository;
 import com.mmarenna.galassi_connect.repository.VinculacionRepository;
 import com.mmarenna.galassi_connect.service.EmpresaService;
 import com.mmarenna.galassi_connect.service.FileService;
@@ -42,8 +43,10 @@ public class UserController {
 
     @Autowired
     private CredencialRepository credencialRepository;
+    
+    @Autowired
+    private FileRepository fileRepository;
 
-    // Método auxiliar para obtener el Usuario logueado
     private Usuario getLoggedUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
@@ -52,8 +55,7 @@ public class UserController {
                 .orElse(null);
     }
 
-    // Vista de Empresas
-    @GetMapping("/empresas") // Ya no recibe userId en URL
+    @GetMapping("/empresas")
     public ResponseEntity<List<EmpresaDTO>> getUserEmpresas() {
         Usuario usuario = getLoggedUser();
         if (usuario != null) {
@@ -69,8 +71,7 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
-    // Acceso a Archivos
-    @GetMapping("/files") // Ya no recibe userId en URL
+    @GetMapping("/files")
     public ResponseEntity<List<FileDTO>> getUserFiles(@RequestParam(required = false) String type) {
         Usuario usuario = getLoggedUser();
         if (usuario != null) {
@@ -95,11 +96,8 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
     
-    // Descargas
     @GetMapping("/files/{fileId}/download")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long fileId) {
-        // Aquí deberíamos validar que el archivo pertenece a una empresa del usuario logueado
-        // Por simplicidad, asumimos que si tiene el ID es porque lo vio en su lista
         Optional<File> fileOpt = fileService.findById(fileId);
         
         if (fileOpt.isPresent()) {
@@ -129,6 +127,12 @@ public class UserController {
         dto.setCp(entity.getCp());
         dto.setProvincia(entity.getProvincia());
         dto.setEmail(entity.getEmail());
+        dto.setCuentas_bancarias(entity.getCuentas_bancarias());
+        
+        // Sin imagen por defecto. Si es null, el frontend mostrará el nombre.
+        dto.setImage_name(entity.getImage_name());
+        dto.setHasFiles(fileRepository.countByEmpresaId(entity.getId()) > 0);
+
         return dto;
     }
 
